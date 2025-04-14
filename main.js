@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
 function initializeSizePicker() {
   const sizeOptions = Object.keys(sizePrices).map(value => ({
     value: value,
-    label: `${value.replace("X", "cm Ancho X ")}cm Alto (S/.${sizePrices[value].toFixed(2)})`
+    label: `${value.replace("X", "cm Ancho X ")}cm Alto => (S/.${sizePrices[value].toFixed(2)})`
   }));
 
   sizePicker = new iOSPicker({

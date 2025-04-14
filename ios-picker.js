@@ -1,4 +1,4 @@
-(function() {
+(function () {
     'use strict';
 
     const styles = `
@@ -8,19 +8,17 @@
             --text-color: #333;
             --selected-text-color: #e76f51;
             --item-height: 40px;
-            --visible-items: 5;
+            --visible-items: 3;
         }
 
         .carousel-container {
             position: relative;
             width: 100%;
-            // max-width: 500px;
             height: calc(var(--item-height) * var(--visible-items));
             overflow: hidden;
             background-color: white;
             border: 1px solid #dee2e6;
             border-radius: 4px;
-            // box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
             touch-action: pan-y;
             margin: 0 auto;
         }
@@ -28,7 +26,9 @@
         .carousel-track {
             position: absolute;
             width: 100%;
-            transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            transition: transform 0.2s ease-out; /* Reduce la duración */
+            color: #070707;
+            will-change: transform;
         }
 
         .carousel-item {
@@ -36,9 +36,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.125rem;
-            color: var(--text-color);
-            padding: 0 20px;
+            font-size: 0.875rem;
+            color:  color: #070707;;
+            // padding: 0 20px;
             cursor: pointer;
             transition: color 0.2s, transform 0.2s;
             user-select: none;
@@ -72,16 +72,7 @@
             pointer-events: none;
         }
 
-        .carousel-container::before {
-            top: 0;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0));
-        }
-
-        .carousel-container::after {
-            bottom: 0;
-            background: linear-gradient(to top, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0));
-        }
-
+        
         .picker-title {
             text-align: center;
             margin-bottom: 20px;
@@ -91,7 +82,6 @@
         }
 
         .picker-wrapper {
-            // padding: 20px;
             display: 20px;
             flex-direction: column;
             align-items: center;
@@ -107,6 +97,9 @@
                 initialValue: null,
                 onChange: null,
             }, options);
+            this.itemHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--item-height'));
+            this.visibleItems = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--visible-items'));
+            this.centerOffset = Math.floor(this.visibleItems / 2); // Precalcula el offset
 
             this.init();
         }
@@ -140,7 +133,7 @@
 
             this.carouselTrack = document.createElement('div');
             this.carouselTrack.className = 'carousel-track';
-            
+
             const items = this.generateItems();
             this.carouselTrack.innerHTML = items;
 
@@ -162,7 +155,7 @@
         generateItems() {
             const items = this.options.items;
             const copies = [...items.slice(-3), ...items, ...items.slice(0, 3)];
-            
+
             return copies.map(item => `
                 <div class="carousel-item" data-value="${item.value}">
                     ${item.label}
@@ -208,12 +201,13 @@
         constructor(options) {
             this.element = options.element;
             this.trackElement = options.trackElement;
-            this.onChange = options.onChange || (() => {});
+            this.onChange = options.onChange || (() => { });
             this.items = Array.from(this.trackElement.querySelectorAll('.carousel-item'));
             this.itemHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--item-height'));
             this.visibleItems = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--visible-items'));
             this.mainItemsStart = 3;
-            this.mainItemsCount = this.options?.items?.length || 12;
+            this.mainItemsCount = this.items.length - 6; // Calcula basado en los items generados
+            this.infiniteLoop = true;
             this.currentIndex = 0;
             this.startY = 0;
             this.startTranslate = 0;
@@ -235,7 +229,7 @@
         }
 
         setupEvents() {
-            this.element.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
+            this.element.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
             this.element.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
             this.element.addEventListener('touchend', this.handleTouchEnd.bind(this));
             this.element.addEventListener('mousedown', this.handleMouseDown.bind(this));
@@ -253,9 +247,7 @@
             let relativeIndex = index - this.mainItemsStart;
             if (relativeIndex < 0) relativeIndex += this.mainItemsCount;
             else if (relativeIndex >= this.mainItemsCount) relativeIndex -= this.mainItemsCount;
-            const isSpecialTransition = (relativeIndex === 0 && this.currentIndex === this.mainItemsCount - 1) || 
-                                     (relativeIndex === this.mainItemsCount - 1 && this.currentIndex === 0);
-            this.goToIndex(relativeIndex, !isSpecialTransition);
+            this.goToIndex(relativeIndex, true);
         }
 
         handleTouchStart(e) {
@@ -279,27 +271,19 @@
         handleTouchEnd() {
             if (!this.isDragging) return;
             this.isDragging = false;
-            const moved = this.currentTranslate - this.startTranslate;
-            let newIndex = this.currentIndex;
-            if (Math.abs(moved) > this.itemHeight / 3) {
-                if (moved > 0) {
-                    newIndex = this.currentIndex - 1;
-                    if (newIndex < 0) {
-                        newIndex = this.mainItemsCount - 1;
-                        this.transitionSkip = true;
-                    }
-                } else {
-                    newIndex = this.currentIndex + 1;
-                    if (newIndex >= this.mainItemsCount) {
-                        newIndex = 0;
-                        this.transitionSkip = true;
-                    }
-                }
-            }
-            this.goToIndex(newIndex, !this.transitionSkip);
-            this.transitionSkip = false;
-        }
 
+            const moved = this.currentTranslate - this.startTranslate;
+            const movementInItems = Math.round(-moved / this.itemHeight);
+            let newIndex = this.currentIndex + movementInItems;
+
+            if (this.infiniteLoop) {
+                newIndex = (newIndex + this.mainItemsCount) % this.mainItemsCount;
+            } else {
+                newIndex = Math.max(0, Math.min(this.mainItemsCount - 1, newIndex));
+            }
+
+            this.goToIndex(newIndex, true);
+        }
         handleMouseDown(e) {
             if (this.isDragging || this.isAnimating) return;
             e.preventDefault();
@@ -323,71 +307,70 @@
             if (!this.isDragging) return;
             this.isDragging = false;
             this.element.style.cursor = '';
+
             const moved = this.currentTranslate - this.startTranslate;
-            let newIndex = this.currentIndex;
-            if (Math.abs(moved) > this.itemHeight / 3) {
-                if (moved > 0) {
-                    newIndex = this.currentIndex - 1;
-                    if (newIndex < 0) {
-                        newIndex = this.mainItemsCount - 1;
-                        this.transitionSkip = true;
-                    }
-                } else {
-                    newIndex = this.currentIndex + 1;
-                    if (newIndex >= this.mainItemsCount) {
-                        newIndex = 0;
-                        this.transitionSkip = true;
-                    }
-                }
+            const movementInItems = Math.round(-moved / this.itemHeight);
+            let newIndex = this.currentIndex + movementInItems;
+
+            if (this.infiniteLoop) {
+                newIndex = (newIndex + this.mainItemsCount) % this.mainItemsCount;
+            } else {
+                newIndex = Math.max(0, Math.min(this.mainItemsCount - 1, newIndex));
             }
-            this.goToIndex(newIndex, !this.transitionSkip);
-            this.transitionSkip = false;
+
+            this.goToIndex(newIndex, true);
         }
 
         handleWheel(e) {
             e.preventDefault();
+
             if (this.isAnimating) return;
-            if (Date.now() - (this.lastWheelTime || 0) < 50) return;
-            this.lastWheelTime = Date.now();
+
+            const now = Date.now();
+            if (now - (this.lastWheelTime || 0) < 200) return; // Aumenta el intervalo
+            this.lastWheelTime = now;
+
             const direction = e.deltaY > 0 ? 1 : -1;
             let newIndex = this.currentIndex + direction;
-            if ((newIndex < 0 && this.currentIndex === 0) || 
-                (newIndex >= this.mainItemsCount && this.currentIndex === this.mainItemsCount - 1)) {
-                this.transitionSkip = true;
+
+            if (this.infiniteLoop) {
+                newIndex = (newIndex + this.mainItemsCount) % this.mainItemsCount;
+            } else {
+                newIndex = Math.max(0, Math.min(this.mainItemsCount - 1, newIndex));
             }
-            if (newIndex < 0) newIndex = this.mainItemsCount - 1;
-            else if (newIndex >= this.mainItemsCount) newIndex = 0;
-            this.goToIndex(newIndex, !this.transitionSkip);
-            this.transitionSkip = false;
+
+            this.goToIndex(newIndex, true);
         }
 
         goToIndex(index, animate = true) {
-            if (index < 0 || index >= this.mainItemsCount) return;
-            const isDecemberToJanuary = (this.currentIndex === this.mainItemsCount - 1 && index === 0);
-            const isJanuaryToDecember = (this.currentIndex === 0 && index === this.mainItemsCount - 1);
-            if (isDecemberToJanuary || isJanuaryToDecember) animate = false;
-            if (animate) this.isAnimating = true;
-            const previousIndex = this.currentIndex;
-            this.currentIndex = index;
-            const centerOffset = Math.floor(this.visibleItems / 2);
-            const actualIndex = this.mainItemsStart + index;
-            this.currentTranslate = -((actualIndex - centerOffset) * this.itemHeight);
-            if (animate) {
-                this.trackElement.style.transition = 'transform 0.3s cubic-bezier(0.23, 1, 0.32, 1)';
-            } else {
-                this.trackElement.style.transition = 'none';
-            }
-            this.updatePosition();
-            this.highlightSelected();
-            const selectedItem = this.items[this.mainItemsStart + index];
-            this.onChange(selectedItem.dataset.value, index);
-            if (animate) {
-                setTimeout(() => {
-                    this.trackElement.style.transition = 'none';
+
+            if (this.isAnimating) return; // Evita bloqueos
+            this.isAnimating = true;
+
+            if (this.infiniteLoop) {
+                this.currentIndex = index;
+
+                const centerOffset = Math.floor(this.visibleItems / 2);
+                const actualIndex = this.mainItemsStart + index;
+                this.currentTranslate = -((actualIndex - centerOffset) * this.itemHeight);
+
+                if (animate) {
+                    this.trackElement.style.transition = ' none';
+                }
+
+                this.updatePosition();
+                this.highlightSelected();
+
+                const selectedItem = this.items[this.mainItemsStart + index];
+                this.onChange(selectedItem.dataset.value, index);
+
+                if (animate) {
+                    setTimeout(() => {
+                        this.isAnimating = false;
+                    }, 200); // Reduce el tiempo de espera
+                } else {
                     this.isAnimating = false;
-                }, 300);
-            } else {
-                this.isAnimating = false;
+                }
             }
         }
 
@@ -408,16 +391,14 @@
 
         next() {
             let newIndex = this.currentIndex + 1;
-            const isDecemberToJanuary = (this.currentIndex === this.mainItemsCount - 1);
             if (newIndex >= this.mainItemsCount) newIndex = 0;
-            this.goToIndex(newIndex, !isDecemberToJanuary);
+            this.goToIndex(newIndex, true);
         }
 
         prev() {
             let newIndex = this.currentIndex - 1;
-            const isJanuaryToDecember = (this.currentIndex === 0);
             if (newIndex < 0) newIndex = this.mainItemsCount - 1;
-            this.goToIndex(newIndex, !isJanuaryToDecember);
+            this.goToIndex(newIndex, true);
         }
 
         getValue() {
@@ -428,5 +409,3 @@
 
     window.iOSPicker = Picker;
 })();
-
-//Prueba
