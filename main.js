@@ -272,56 +272,124 @@ function updateImageCounter() {
   }
 }
 
-// function analyzeImagePixels(img) {
+// Factor de conversión de cm a píxeles (ajusta según la calidad requerida)
+const PIXELS_PER_CM = 30;
 
-//   if (img.naturalWidth === 0 || img.naturalHeight === 0) {
-//     console.log("⚠️ La imagen aún no se ha cargado completamente.");
-//     return;
-//   }
+// Función para calcular los requisitos mínimos de píxeles según el tamaño de la imagen
+function getMinimumPixelsForImage(size) {
+  const [widthCm, heightCm] = size.split('X').map(Number); // Convierte "10X15" a [10, 15]
+  const minWidth = widthCm * PIXELS_PER_CM;
+  const minHeight = heightCm * PIXELS_PER_CM;
+  return { minWidth, minHeight };
+}
 
-//   const canvas = document.createElement('canvas');
-//   const ctx = canvas.getContext('2d');
+// Función para analizar los píxeles de la imagen
+function analyzeImagePixels(img, imageSize, onSuccess, onError) {
+  const { minWidth, minHeight } = getMinimumPixelsForImage(imageSize);
 
-//   canvas.width = img.naturalWidth;
-//   canvas.height = img.naturalHeight;
+  if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+    console.log("⚠️ La imagen aún no se ha cargado completamente.");
+    onError("La imagen no se cargó correctamente.");
+    return;
+  }
 
-//   ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
+  // Validar dimensiones mínimas dinámicamente
+  if (img.naturalWidth < minWidth || img.naturalHeight < minHeight) {
+    console.log(`❌ La imagen no cumple con las dimensiones mínimas: ${img.naturalWidth}x${img.naturalHeight}`);
+    onError(`Tu imagen debe tener al menos ${minWidth}x${minHeight} píxeles para un tamaño de ${imageSize.replace("X", "x")} cm.`);
+    return;
+  }
 
-//   const imageData = ctx.getImageData(0, 0, img.naturalWidth, img.naturalHeight);
-//   const pixels = imageData.data;
+  console.log(`✅ Imagen válida: ${img.naturalWidth}x${img.naturalHeight}`);
+  onSuccess();
+}
 
-//   console.log("Total de píxeles procesados:", pixels.length / 4);
+// Modificar el flujo de subida de imágenes para incluir la validación dinámica
+function handleFiles(e) {
+  const files = e.target.files;
 
-//   predictRealSize(img.naturalWidth, img.naturalHeight);
-// }
+  if (files.length > 0) {
+    uploadElements.classList.add('has-images');
+  }
 
-// function predictRealSize(width, height) {
-//   console.log("Calculando tamaño real para:", width, height);
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
 
-//   const factorX = 0.0169;
-//   const factorY = 0.0169;
+    // Verificar que sea una imagen
+    if (!file.type.match('image.*')) continue;
 
-//   const realWidth = (width * factorX).toFixed(1);
-//   const realHeight = (height * factorY).toFixed(1);
+    const reader = new FileReader();
 
-//   console.log(`Tamaño estimado en cm: ${realWidth} x ${realHeight}`);
-// }
+    reader.onload = function (event) {
+      const img = new Image();
+      img.src = event.target.result;
 
-// window.onload = function () {
-//   const uploadedImage = document.getElementById("uploaded-image");
+      img.onload = function () {
+        // Obtener el tamaño de la imagen seleccionado en el picker
+        const selectedSize = sizePicker.getValue(); // Ejemplo: "10X15"
 
-//   if (uploadedImage.complete && uploadedImage.naturalWidth > 0) {
-//     console.log("✅ La imagen ya estaba cargada.");
-//     //updateImageSize();
-//   } else {
-//     console.log("⌛ Esperando a que la imagen se cargue...");
-//     uploadedImage.onload = function () {
-//       console.log("✅ Imagen cargada.");
-//       analyzeImagePixels(uploadedImage);
-//       //updateImageSize();
-//     };
-//   }
-// };
+        // Validar la calidad de la imagen según el tamaño seleccionado
+        analyzeImagePixels(
+          img,
+          selectedSize,
+          () => {
+            // Si la imagen es válida, agregarla al array y mostrarla
+            const imageId = 'img_' + Date.now() + '_' + i;
+
+            uploadedImagesData.push({
+              id: imageId,
+              file: file,
+            });
+
+            console.log("Imagen añadida:", imageId);
+
+            const imageItem = document.createElement('div');
+            imageItem.className = 'image-item';
+            imageItem.dataset.imageId = imageId;
+
+            const imgElement = document.createElement('img');
+            imgElement.src = event.target.result;
+            imgElement.alt = 'Imagen subida';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-image-btn';
+            removeBtn.textContent = 'X';
+            removeBtn.addEventListener('click', function (e) {
+              e.stopPropagation();
+
+              uploadedImagesData = uploadedImagesData.filter(img => img.id !== imageId);
+              console.log("Imagen eliminada:", imageId);
+
+              imageItem.remove();
+
+              if (imagesGrid.children.length === 0) {
+                uploadElements.classList.remove('has-images');
+              }
+
+              updateImageCounter();
+              updateTotalPrice();
+            });
+
+            imageItem.appendChild(imgElement);
+            imageItem.appendChild(removeBtn);
+            imagesGrid.appendChild(imageItem);
+
+            updateImageCounter();
+            updateTotalPrice();
+          },
+          (errorMessage) => {
+            // Si la imagen no es válida, mostrar un mensaje de error
+            showNotification(errorMessage, 'error');
+          }
+        );
+      };
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  fileInput.value = '';
+}
 
 // Función para añadir al carrito - Modificada para procesar múltiples imágenes de forma secuencial
 function addToCart() {
@@ -490,6 +558,10 @@ function showNotification(message, type = 'info') {
   notification.className = `notification ${type}`;
   notification.textContent = message;
   document.body.appendChild(notification);
+
+  // Agregar el mensaje al log de la consola
+  console.log(`[${type.toUpperCase()}] ${message}`);
+  
   setTimeout(() => notification.classList.add('show'), 10);
   setTimeout(() => {
     notification.classList.remove('show');
@@ -553,3 +625,37 @@ function updateTotalPrice() {
 
 // Exponer la función al ámbito global para evitar problemas con `onclick`
 window.addToCart = addToCart;
+
+//SCROLL DE CANTIDAD
+function setupEventListeners() {
+  const quantityInput = document.querySelector('.quantity-field input');
+
+  quantityInput.addEventListener('focus', function () {
+    if (this.value === '1') {
+      this.value = '';
+    }
+  });
+
+  quantityInput.addEventListener('input', function () {
+    let value = parseInt(this.value);
+
+    // Si es mayor a 100, vuelve al mismo valor
+    if (value > 100) {
+      this.value = 100;
+    }
+
+    updateTotalPrice();
+  });
+
+  quantityInput.addEventListener('blur', function () {
+    let value = parseInt(this.value);
+
+    if (isNaN(value) || value < 1) {
+      this.value = 1;
+    }
+  });
+
+  document.getElementById("custom-size__width").addEventListener("input", handleCustomSize);
+  document.getElementById("custom-size__height").addEventListener("input", handleCustomSize);
+  document.querySelector('.add-to-cart-btn').addEventListener('click', addToCart);
+}

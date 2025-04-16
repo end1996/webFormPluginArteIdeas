@@ -26,7 +26,6 @@
         .carousel-track {
             position: absolute;
             width: 100%;
-            transition: transform 0.2s ease-out; /* Reduce la duración */
             color: #070707;
             will-change: transform;
         }
@@ -40,7 +39,6 @@
             color:  color: #070707;;
             // padding: 0 20px;
             cursor: pointer;
-            transition: color 0.2s, transform 0.2s;
             user-select: none;
         }
 
