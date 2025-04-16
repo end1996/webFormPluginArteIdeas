@@ -60,11 +60,6 @@
                 <input id="custom-size__height" type="number" placeholder="Alto (cm)" min="15" max="100" step="1">
             </div>
         </div>
-
-        <div id="custom-size" class="custom-size" style="display: none;">
-            <input id="custom-size__width" type="number" placeholder="Ancho (cm)" value="" min="10" max="60" step="1">
-            <input id="custom-size__height" type="number" placeholder="Alto (cm)" value="" min="15" max="100" step="1">
-        </div>
     </div>
 
     <div class="section">

@@ -342,6 +342,22 @@ body {
   background-color: #2196F3;
 }
 
+.image-item.low-quality {
+  border: 2px dashed #ff9800;
+  position: relative;
+}
+
+.quality-warning {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  background-color: #ffeb3b;
+  color: #000;
+  padding: 2px 6px;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
 /* Estilos para indicador de carga */
 .loading-overlay {
   position: fixed;

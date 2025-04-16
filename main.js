@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
   initializeSizePicker();
   initializeFramePicker();
   setupEventListeners();
-  
+
   // Initialize image counter
   const counterElement = document.createElement('div');
   counterElement.id = 'images-counter';
@@ -48,8 +48,9 @@ function initializeSizePicker() {
     items: sizeOptions,
     initialValue: '10X15',
     onChange: (value) => {
-      // console.log('Size picker changed to:', value);
-      updateTotalPrice();
+      console.log('Size picker changed to:', value);
+      revalidateImagesWithNewSize(value); // Revalidar las imágenes con el nuevo tamaño
+      updateTotalPrice(); // Actualizar el precio total
     }
   });
 }
@@ -73,7 +74,33 @@ function initializeFramePicker() {
 }
 
 function setupEventListeners() {
-  document.querySelector('.quantity-field input').addEventListener('input', updateTotalPrice);
+  const quantityInput = document.querySelector('.quantity-field input');
+
+  quantityInput.addEventListener('focus', function () {
+    if (this.value === '1') {
+      this.value = '';
+    }
+  });
+
+  quantityInput.addEventListener('input', function () {
+    let value = parseInt(this.value);
+
+    // Si es mayor a 100, vuelve al mismo valor
+    if (value > 100) {
+      this.value = 100;
+    }
+
+    updateTotalPrice();
+  });
+
+  quantityInput.addEventListener('blur', function () {
+    let value = parseInt(this.value);
+
+    if (isNaN(value) || value < 1) {
+      this.value = 1;
+    }
+  });
+
   document.getElementById("custom-size__width").addEventListener("input", handleCustomSize);
   document.getElementById("custom-size__height").addEventListener("input", handleCustomSize);
   document.querySelector('.add-to-cart-btn').addEventListener('click', addToCart);
@@ -283,40 +310,39 @@ function getMinimumPixelsForImage(size) {
   return { minWidth, minHeight };
 }
 
-// Función para analizar los píxeles de la imagen
-function analyzeImagePixels(img, imageSize, onSuccess, onError) {
+// Modificado para incluir el nombre del archivo
+function analyzeImagePixels(img, imageSize, fileName) {
   const { minWidth, minHeight } = getMinimumPixelsForImage(imageSize);
 
   if (img.naturalWidth === 0 || img.naturalHeight === 0) {
-    console.log("⚠️ La imagen aún no se ha cargado completamente.");
-    onError("La imagen no se cargó correctamente.");
-    return;
+    return `La imagen "${fileName}" no se cargó correctamente.`;
   }
 
-  // Validar dimensiones mínimas dinámicamente
   if (img.naturalWidth < minWidth || img.naturalHeight < minHeight) {
-    console.log(`❌ La imagen no cumple con las dimensiones mínimas: ${img.naturalWidth}x${img.naturalHeight}`);
-    onError(`Tu imagen debe tener al menos ${minWidth}x${minHeight} píxeles para un tamaño de ${imageSize.replace("X", "x")} cm.`);
-    return;
+    return `La imagen "${fileName}" no tiene suficiente calidad para imprimir en ${imageSize.replace("X", "x")} cm. Debe tener al menos ${minWidth}x${minHeight} píxeles.`;
   }
 
-  console.log(`✅ Imagen válida: ${img.naturalWidth}x${img.naturalHeight}`);
-  onSuccess();
+  return null; // No hay error
 }
 
-// Modificar el flujo de subida de imágenes para incluir la validación dinámica
+
 function handleFiles(e) {
   const files = e.target.files;
+  const selectedSize = sizePicker.getValue();
+  const lowQualityIndexes = [];
 
   if (files.length > 0) {
     uploadElements.classList.add('has-images');
   }
 
+  let pending = files.length;
+
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-
-    // Verificar que sea una imagen
-    if (!file.type.match('image.*')) continue;
+    if (!file.type.match('image.*')) {
+      pending--;
+      continue;
+    }
 
     const reader = new FileReader();
 
@@ -325,63 +351,68 @@ function handleFiles(e) {
       img.src = event.target.result;
 
       img.onload = function () {
-        // Obtener el tamaño de la imagen seleccionado en el picker
-        const selectedSize = sizePicker.getValue(); // Ejemplo: "10X15"
+        const { minWidth, minHeight } = getMinimumPixelsForImage(selectedSize);
+        const isLowQuality = img.naturalWidth < minWidth || img.naturalHeight < minHeight;
 
-        // Validar la calidad de la imagen según el tamaño seleccionado
-        analyzeImagePixels(
-          img,
-          selectedSize,
-          () => {
-            // Si la imagen es válida, agregarla al array y mostrarla
-            const imageId = 'img_' + Date.now() + '_' + i;
+        const imageId = 'img_' + Date.now() + '_' + i;
 
-            uploadedImagesData.push({
-              id: imageId,
-              file: file,
-            });
+        uploadedImagesData.push({
+          id: imageId,
+          file: file,
+          lowQuality: isLowQuality,
+        });
 
-            console.log("Imagen añadida:", imageId);
+        const imageItem = document.createElement('div');
+        imageItem.className = 'image-item';
+        imageItem.dataset.imageId = imageId;
 
-            const imageItem = document.createElement('div');
-            imageItem.className = 'image-item';
-            imageItem.dataset.imageId = imageId;
+        if (isLowQuality) {
+          imageItem.classList.add('low-quality');
+          lowQualityIndexes.push(i + 1); // Posición humana
+        }
 
-            const imgElement = document.createElement('img');
-            imgElement.src = event.target.result;
-            imgElement.alt = 'Imagen subida';
+        const imgElement = document.createElement('img');
+        imgElement.src = event.target.result;
+        imgElement.alt = 'Imagen subida';
 
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'remove-image-btn';
-            removeBtn.textContent = 'X';
-            removeBtn.addEventListener('click', function (e) {
-              e.stopPropagation();
-
-              uploadedImagesData = uploadedImagesData.filter(img => img.id !== imageId);
-              console.log("Imagen eliminada:", imageId);
-
-              imageItem.remove();
-
-              if (imagesGrid.children.length === 0) {
-                uploadElements.classList.remove('has-images');
-              }
-
-              updateImageCounter();
-              updateTotalPrice();
-            });
-
-            imageItem.appendChild(imgElement);
-            imageItem.appendChild(removeBtn);
-            imagesGrid.appendChild(imageItem);
-
-            updateImageCounter();
-            updateTotalPrice();
-          },
-          (errorMessage) => {
-            // Si la imagen no es válida, mostrar un mensaje de error
-            showNotification(errorMessage, 'error');
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-image-btn';
+        removeBtn.textContent = 'X';
+        removeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          uploadedImagesData = uploadedImagesData.filter(img => img.id !== imageId);
+          imageItem.remove();
+          if (imagesGrid.children.length === 0) {
+            uploadElements.classList.remove('has-images');
           }
-        );
+          updateImageCounter();
+          updateTotalPrice();
+        });
+
+        const warningLabel = document.createElement('div');
+        warningLabel.className = 'quality-warning';
+        warningLabel.textContent = '⚠️ Resolución baja';
+        if (!isLowQuality) warningLabel.style.display = 'none';
+
+        imageItem.appendChild(imgElement);
+        imageItem.appendChild(warningLabel);
+        imageItem.appendChild(removeBtn);
+        imagesGrid.appendChild(imageItem);
+
+        updateImageCounter();
+        updateTotalPrice();
+
+        pending--;
+
+        if (pending === 0 && lowQualityIndexes.length > 0) {
+          const imagesStr = lowQualityIndexes.join(', ');
+          const plural = lowQualityIndexes.length > 1;
+          const message = plural
+            ? `Las imágenes ${imagesStr} no tienen resolución suficiente para una impresión óptima en ${selectedSize.replace("X", "x")} cm.`
+            : `La imagen ${imagesStr} no tiene resolución suficiente para una impresión óptima en ${selectedSize.replace("X", "x")} cm.`;
+
+          showNotification(message, 'error');
+        }
       };
     };
 
@@ -389,6 +420,52 @@ function handleFiles(e) {
   }
 
   fileInput.value = '';
+}
+
+function revalidateImagesWithNewSize(newSize) {
+  const { minWidth, minHeight } = getMinimumPixelsForImage(newSize);
+  const lowQualityIndexes = [];
+
+  // Recorre las imágenes en el orden en que aparecen en el grid
+  const imageItems = Array.from(imagesGrid.querySelectorAll('.image-item'));
+
+  imageItems.forEach((item, index) => {
+    const imageId = item.dataset.imageId;
+    const data = uploadedImagesData.find(img => img.id === imageId);
+    const imgElement = item.querySelector('img');
+    const warningLabel = item.querySelector('.quality-warning');
+
+    const tempImg = new Image();
+    tempImg.src = imgElement.src;
+
+    tempImg.onload = () => {
+      const isLowQuality = tempImg.naturalWidth < minWidth || tempImg.naturalHeight < minHeight;
+
+      // Actualiza en el array de datos
+      data.lowQuality = isLowQuality;
+
+      // Modifica clases visuales y etiqueta
+      if (isLowQuality) {
+        item.classList.add('low-quality');
+        if (warningLabel) warningLabel.style.display = 'block';
+        lowQualityIndexes.push(index + 1); // Índice basado en el orden del grid
+      } else {
+        item.classList.remove('low-quality');
+        if (warningLabel) warningLabel.style.display = 'none';
+      }
+
+      // Después de terminar todas, mostrar advertencia si hay
+      if (index === imageItems.length - 1 && lowQualityIndexes.length > 0) {
+        const plural = lowQualityIndexes.length > 1;
+        const imagesStr = lowQualityIndexes.join(', ');
+        const message = plural
+          ? `Las imágenes ${imagesStr} no tienen resolución suficiente para una impresión óptima en ${newSize.replace("X", "x")} cm.`
+          : `La imagen ${imagesStr} no tiene resolución suficiente para una impresión óptima en ${newSize.replace("X", "x")} cm.`;
+
+        showNotification(message, 'error');
+      }
+    };
+  });
 }
 
 // Función para añadir al carrito - Modificada para procesar múltiples imágenes de forma secuencial
@@ -561,11 +638,11 @@ function showNotification(message, type = 'info') {
 
   // Agregar el mensaje al log de la consola
   console.log(`[${type.toUpperCase()}] ${message}`);
-  
+
   setTimeout(() => notification.classList.add('show'), 10);
   setTimeout(() => {
     notification.classList.remove('show');
-    setTimeout(() => document.body.removeChild(notification), 300);
+    setTimeout(() => document.body.removeChild(notification), 500);
   }, 3000);
 }
 
@@ -603,10 +680,10 @@ function updateTotalPrice() {
   }
 
   const quantity = parseInt(document.querySelector('.quantity-field input').value) || 1;
-  
+
   // Use the sizePicker instance to get the value instead of DOM selection
   const selectedSize = sizePicker.getValue();
-  
+
   let pricePerUnit = 0;
 
   if (selectedSize) {
@@ -625,37 +702,3 @@ function updateTotalPrice() {
 
 // Exponer la función al ámbito global para evitar problemas con `onclick`
 window.addToCart = addToCart;
-
-//SCROLL DE CANTIDAD
-function setupEventListeners() {
-  const quantityInput = document.querySelector('.quantity-field input');
-
-  quantityInput.addEventListener('focus', function () {
-    if (this.value === '1') {
-      this.value = '';
-    }
-  });
-
-  quantityInput.addEventListener('input', function () {
-    let value = parseInt(this.value);
-
-    // Si es mayor a 100, vuelve al mismo valor
-    if (value > 100) {
-      this.value = 100;
-    }
-
-    updateTotalPrice();
-  });
-
-  quantityInput.addEventListener('blur', function () {
-    let value = parseInt(this.value);
-
-    if (isNaN(value) || value < 1) {
-      this.value = 1;
-    }
-  });
-
-  document.getElementById("custom-size__width").addEventListener("input", handleCustomSize);
-  document.getElementById("custom-size__height").addEventListener("input", handleCustomSize);
-  document.querySelector('.add-to-cart-btn').addEventListener('click', addToCart);
-}
