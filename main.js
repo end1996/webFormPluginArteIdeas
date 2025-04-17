@@ -175,6 +175,11 @@ function toggleFrameOptions(show) {
   if (show) {
     if (!window.mySwiper) {
       window.mySwiper = new Swiper('.mySwiper', {
+        zoom: true,
+        zoom: {
+          maxRatio: 2,
+          minRatio: 1,
+        },
         effect: 'coverflow',
         grabCursor: true,
         centeredSlides: true,

@@ -87,16 +87,24 @@
             <div class="swiper mySwiper">
                 <div class="swiper-wrapper" id="frame-picker">
                     <div class="swiper-slide" data-value="frame1">
-                        <img src="<?php echo get_asset_url('marco1.png'); ?>" alt="marco1">
+                        <div class="swiper-zoom-container">
+                            <img src="<?php echo get_asset_url('marco1.png'); ?>" alt="marco1">
+                        </div>
                     </div>
                     <div class="swiper-slide" data-value="frame2">
-                        <img src="<?php echo get_asset_url('marco2.png'); ?>" alt="marco2">
+                        <div class="swiper-zoom-container">
+                            <img src="<?php echo get_asset_url('marco2.png'); ?>" alt="marco2">
+                        </div>
                     </div>
                     <div class="swiper-slide" data-value="frame3">
-                        <img src="<?php echo get_asset_url('marco3.png'); ?>" alt="marco3">
+                        <div class="swiper-zoom-container">
+                            <img src="<?php echo get_asset_url('marco3.png'); ?>" alt="marco3">
+                        </div>
                     </div>
                     <div class="swiper-slide" data-value="frame4">
-                        <img src="<?php echo get_asset_url('marco4.png'); ?>" alt="marco4">
+                        <div class="swiper-zoom-container">
+                            <img src="<?php echo get_asset_url('marco4.png'); ?>" alt="marco4">
+                        </div>
                     </div>
                 </div>
             </div>
