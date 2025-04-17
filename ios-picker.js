@@ -70,14 +70,13 @@
             pointer-events: none;
         }
 
-        
-        .picker-title {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--text-color);
-        }
+        // .picker-title {
+        //     text-align: center;
+        //     margin-bottom: 20px;
+        //     font-size: 20px;
+        //     font-weight: 600;
+        //     color: var(--text-color);
+        // }
 
         .picker-wrapper {
             display: 20px;
@@ -140,7 +139,7 @@
 
             this.carouselContainer.appendChild(highlight);
             this.carouselContainer.appendChild(this.carouselTrack);
-            this.pickerWrapper.appendChild(this.titleElement);
+            // this.pickerWrapper.appendChild(this.titleElement);
             this.pickerWrapper.appendChild(this.carouselContainer);
 
             if (this.options.container) {

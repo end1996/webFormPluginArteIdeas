@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
   initializeSizePicker();
   initializeFramePicker();
   setupEventListeners();
+  setupCommentLengthChecker();
 
   // Initialize image counter
   const counterElement = document.createElement('div');
@@ -70,6 +71,19 @@ function initializeFramePicker() {
       item.classList.add('selected');
       currentSelectedFrame = item.dataset.value;
     });
+  });
+}
+
+function setupCommentLengthChecker() {
+  const commentArea = document.querySelector(".comment-area");
+
+  commentArea.addEventListener('input', function () {
+    const maxLength = 255;
+    const currentLength = this.value.length;
+    
+    if (currentLength >= maxLength) {
+      showNotification('Has alcanzado el límite máximo de 255 caracteres en los comentarios.', 'error');
+    }
   });
 }
 
