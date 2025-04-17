@@ -107,9 +107,54 @@ function setupEventListeners() {
 }
 
 function handleCustomSize() {
-  if (document.querySelector('input[name="size-type"]:checked').value === 'custom') {
+  const widthInput = document.getElementById("custom-size__width");
+  const heightInput = document.getElementById("custom-size__height");
+
+  // ANCHO 
+  widthInput.addEventListener('focus', function () {
+    if (this.value === '10') this.value = '';
+  });
+
+  widthInput.addEventListener('input', function () {
+    let value = parseInt(this.value);
+    if (value > 60) {
+      this.value = 60;
+      showNotification("El ancho no puede ser mayor a 60 cm.", 'error');
+    }
     updateTotalPrice();
-  }
+  });
+
+  widthInput.addEventListener('blur', function () {
+    let value = parseInt(this.value);
+    if (isNaN(value) || value < 10) {
+      this.value = 10;
+      showNotification("El ancho no puede ser menor a 10 cm.", 'error');
+    }
+  });
+
+  // ALTO 
+  heightInput.addEventListener('focus', function () {
+    if (this.value === '15') this.value = '';
+  });
+
+  heightInput.addEventListener('input', function () {
+    let value = parseInt(this.value);
+    if (value > 100) {
+      this.value = 100;
+      showNotification("El alto no puede ser mayor a 100 cm.", 'error');
+    }
+    updateTotalPrice();
+  });
+
+  heightInput.addEventListener('blur', function () {
+    let value = parseInt(this.value);
+    if (isNaN(value) || value < 15) {
+      this.value = 15;
+      showNotification("El alto no puede ser menor a 15 cm.", 'error');
+    }
+  });
+
+  document.querySelector('.add-to-cart-btn').addEventListener('click', addToCart);
 }
 
 function toggleSizeOptions(type) {
@@ -197,83 +242,108 @@ uploadArea.addEventListener('drop', (e) => {
 
 // Función para manejar los archivos - Modificada para soportar múltiples imágenes
 function handleFiles(e) {
-  const files = e.target.files;
+  const files = e.target.files; // Obtiene los archivos seleccionados
+  const selectedSize = sizePicker.getValue(); // Obtiene el tamaño seleccionado
+  const lowQualityIndexes = []; // Array para almacenar índices de imágenes de baja calidad
 
-  // Si hay archivos, cambiamos el estado visual
   if (files.length > 0) {
-    uploadElements.classList.add('has-images');
+    uploadElements.classList.add('has-images'); // Añadir clase para mostrar que hay imágenes
   }
+
+  let pending = files.length; // Contador de archivos pendientes de procesar
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
 
-    // Verificar que sea una imagen
-    if (!file.type.match('image.*')) continue;
+    // Verificar si el archivo es una imagen
+    if (!file.type.match('image.*')) {
+      pending--; // Decrementar el contador de pendientes si no es una imagen
+      continue;
+    }
 
-    // Generar un ID único para esta imagen
-    const imageId = 'img_' + Date.now() + '_' + i;
-
-    // Almacenar la imagen en la variable global con su ID
-    uploadedImagesData.push({
-      id: imageId,
-      file: file
-    });
-
-    console.log("Imagen añadida:", imageId);
-
-    const reader = new FileReader();
+    const reader = new FileReader(); // Crear un nueva instancia FileReader para cada archivo
 
     reader.onload = function (event) {
-      // Crear el elemento de imagen
-      const imageItem = document.createElement('div');
-      imageItem.className = 'image-item';
-      imageItem.dataset.imageId = imageId; // Almacenar el ID para referencia
+      const img = new Image();
+      img.src = event.target.result; // Asignar la URL de la imagen al objeto Image
 
-      const img = document.createElement('img');
-      img.src = event.target.result;
-      img.alt = 'Imagen subida';
+      img.onload = function () {
+        const { minWidth, minHeight } = getMinimumPixelsForImage(selectedSize); // Calcular los píxeles mínimos por imagen
+        const isLowQuality = img.naturalWidth < minWidth || img.naturalHeight < minHeight; // Verificar si la imagen es de baja calidad
 
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'remove-image-btn';
-      removeBtn.textContent = 'X';
-      removeBtn.addEventListener('click', function (e) {
-        e.stopPropagation(); // Evitar que el clic se propague al área de upload
+        const imageId = 'img_' + Date.now() + '_' + i; // Generar un ID único para la imagen
 
-        // Eliminar la imagen del array global
-        uploadedImagesData = uploadedImagesData.filter(img => img.id !== imageId);
-        console.log("Imagen eliminada:", imageId);
+        // Almacenar los datos de la imagen en el array global
+        uploadedImagesData.push({
+          id: imageId,
+          file: file,
+          lowQuality: isLowQuality,
+        });
 
-        // Eliminar la vista previa de la imagen
-        imageItem.remove();
+        // Crear el elemento de imagen en el DOM
+        const imageItem = document.createElement('div');
+        imageItem.className = 'image-item';
+        imageItem.dataset.imageId = imageId; // Asignar el ID al elemento
 
-        // Si no quedan imágenes, restauramos el estado visual
-        if (imagesGrid.children.length === 0) {
-          uploadElements.classList.remove('has-images');
+        if (isLowQuality) {
+          imageItem.classList.add('low-quality');  // Añadir clase para baja calidad
+          lowQualityIndexes.push(i + 1); // Guarda el índice (basado en 1) de la imagen Posición humana
         }
 
-        // Actualizar el contador de imágenes
-        updateImageCounter();
+        // Crear el elemento de imagen y botón de eliminar
+        const imgElement = document.createElement('img');
+        imgElement.src = event.target.result;
+        imgElement.alt = 'Imagen subida';
 
-        // Actualizar el precio total
-        updateTotalPrice();
-      });
+        // Crea el botón de eliminar imagen
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-image-btn';
+        removeBtn.textContent = 'X';
+        removeBtn.addEventListener('click', function (e) {
+          e.stopPropagation(); // Evitar que el evento de clic se propague al contenedor
+          uploadedImagesData = uploadedImagesData.filter(img => img.id !== imageId); // Eliminar la imagen del array
+          imageItem.remove(); // Eliminar el elemento del DOM
+          if (imagesGrid.children.length === 0) {
+            uploadElements.classList.remove('has-images'); // Remover clase si no hay imágenes
+          }
+          updateImageCounter(); // Actualizar el contador de imágenes
+          updateTotalPrice(); // Actualizar el precio total
+        });
 
-      imageItem.appendChild(img);
-      imageItem.appendChild(removeBtn);
-      imagesGrid.appendChild(imageItem);
+        // Crear la etiqueta de advertencia de baja calidad
+        const warningLabel = document.createElement('div');
+        warningLabel.className = 'quality-warning';
+        warningLabel.textContent = '⚠️ Resolución baja';
+        if (!isLowQuality) warningLabel.style.display = 'none'; // Ocultar si no es baja calidad
 
-      // Actualizar el contador de imágenes
-      updateImageCounter();
+        // Añadir los elementos al contenedor de imágenes
+        imageItem.appendChild(imgElement);
+        imageItem.appendChild(warningLabel);
+        imageItem.appendChild(removeBtn);
+        imagesGrid.appendChild(imageItem);
 
-      // Actualizar el precio total
-      updateTotalPrice();
+        updateImageCounter(); // Actualizar el contador de imágenes
+        updateTotalPrice(); // Actualizar el precio total
+
+        pending--; // Decrementar el contador de pendientes
+
+        // Si todas las imágenes han sido procesadas, mostrar advertencia si hay imágenes de baja calidad
+        if (pending === 0 && lowQualityIndexes.length > 0) {
+          const imagesStr = lowQualityIndexes.join(', '); // Crear una cadena con los índices de las imágenes
+          const plural = lowQualityIndexes.length > 1; // Determina si es plural
+          const message = plural
+            ? `Las imágenes ${imagesStr} no tienen resolución suficiente para una impresión óptima en ${selectedSize.replace("X", "x")} cm.`
+            : `La imagen ${imagesStr} no tiene resolución suficiente para una impresión óptima en ${selectedSize.replace("X", "x")} cm.`;
+
+          showNotification(message, 'error'); // Mostrar advertencia al usuario
+        }
+      };
     };
 
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(file); // Leer el archivo como URL de datos
   }
 
-  // Resetear el input para permitir subir el mismo archivo otra vez
-  fileInput.value = '';
+  fileInput.value = ''; // Resetea el input para permitir subir el mismo archivo otra vez
 }
 
 // Función para actualizar el contador de imágenes
@@ -305,19 +375,21 @@ const PIXELS_PER_CM = 30;
 // Función para calcular los requisitos mínimos de píxeles según el tamaño de la imagen
 function getMinimumPixelsForImage(size) {
   const [widthCm, heightCm] = size.split('X').map(Number); // Convierte "10X15" a [10, 15]
-  const minWidth = widthCm * PIXELS_PER_CM;
-  const minHeight = heightCm * PIXELS_PER_CM;
-  return { minWidth, minHeight };
+  const minWidth = widthCm * PIXELS_PER_CM; // Calcula el ancho mínimo en píxeles
+  const minHeight = heightCm * PIXELS_PER_CM; // Calcula la altura mínima en píxeles
+  return { minWidth, minHeight }; // Devuelve un objeto con los valores mínimos
 }
 
 // Modificado para incluir el nombre del archivo
 function analyzeImagePixels(img, imageSize, fileName) {
-  const { minWidth, minHeight } = getMinimumPixelsForImage(imageSize);
+  const { minWidth, minHeight } = getMinimumPixelsForImage(imageSize); // Obtener los requisitos mínimos de píxeles 
 
-  if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+  // Verificar si la imagen se ha cargado correctamente
+  if (img.naturalWidth === 0 || img.naturalHeight === 0) { 
     return `La imagen "${fileName}" no se cargó correctamente.`;
   }
 
+  // Verificar si la imagen cumple con los requisitos mínimos
   if (img.naturalWidth < minWidth || img.naturalHeight < minHeight) {
     return `La imagen "${fileName}" no tiene suficiente calidad para imprimir en ${imageSize.replace("X", "x")} cm. Debe tener al menos ${minWidth}x${minHeight} píxeles.`;
   }
@@ -325,144 +397,48 @@ function analyzeImagePixels(img, imageSize, fileName) {
   return null; // No hay error
 }
 
-
-function handleFiles(e) {
-  const files = e.target.files;
-  const selectedSize = sizePicker.getValue();
-  const lowQualityIndexes = [];
-
-  if (files.length > 0) {
-    uploadElements.classList.add('has-images');
-  }
-
-  let pending = files.length;
-
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    if (!file.type.match('image.*')) {
-      pending--;
-      continue;
-    }
-
-    const reader = new FileReader();
-
-    reader.onload = function (event) {
-      const img = new Image();
-      img.src = event.target.result;
-
-      img.onload = function () {
-        const { minWidth, minHeight } = getMinimumPixelsForImage(selectedSize);
-        const isLowQuality = img.naturalWidth < minWidth || img.naturalHeight < minHeight;
-
-        const imageId = 'img_' + Date.now() + '_' + i;
-
-        uploadedImagesData.push({
-          id: imageId,
-          file: file,
-          lowQuality: isLowQuality,
-        });
-
-        const imageItem = document.createElement('div');
-        imageItem.className = 'image-item';
-        imageItem.dataset.imageId = imageId;
-
-        if (isLowQuality) {
-          imageItem.classList.add('low-quality');
-          lowQualityIndexes.push(i + 1); // Posición humana
-        }
-
-        const imgElement = document.createElement('img');
-        imgElement.src = event.target.result;
-        imgElement.alt = 'Imagen subida';
-
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'remove-image-btn';
-        removeBtn.textContent = 'X';
-        removeBtn.addEventListener('click', function (e) {
-          e.stopPropagation();
-          uploadedImagesData = uploadedImagesData.filter(img => img.id !== imageId);
-          imageItem.remove();
-          if (imagesGrid.children.length === 0) {
-            uploadElements.classList.remove('has-images');
-          }
-          updateImageCounter();
-          updateTotalPrice();
-        });
-
-        const warningLabel = document.createElement('div');
-        warningLabel.className = 'quality-warning';
-        warningLabel.textContent = '⚠️ Resolución baja';
-        if (!isLowQuality) warningLabel.style.display = 'none';
-
-        imageItem.appendChild(imgElement);
-        imageItem.appendChild(warningLabel);
-        imageItem.appendChild(removeBtn);
-        imagesGrid.appendChild(imageItem);
-
-        updateImageCounter();
-        updateTotalPrice();
-
-        pending--;
-
-        if (pending === 0 && lowQualityIndexes.length > 0) {
-          const imagesStr = lowQualityIndexes.join(', ');
-          const plural = lowQualityIndexes.length > 1;
-          const message = plural
-            ? `Las imágenes ${imagesStr} no tienen resolución suficiente para una impresión óptima en ${selectedSize.replace("X", "x")} cm.`
-            : `La imagen ${imagesStr} no tiene resolución suficiente para una impresión óptima en ${selectedSize.replace("X", "x")} cm.`;
-
-          showNotification(message, 'error');
-        }
-      };
-    };
-
-    reader.readAsDataURL(file);
-  }
-
-  fileInput.value = '';
-}
-
+// Functión para revalidar imágenes con el nuevo tamaño seleccionado
 function revalidateImagesWithNewSize(newSize) {
-  const { minWidth, minHeight } = getMinimumPixelsForImage(newSize);
-  const lowQualityIndexes = [];
+  const { minWidth, minHeight } = getMinimumPixelsForImage(newSize); // Obtener los nuevos requisitos mínimos
+  const lowQualityIndexes = []; // Array para almacenar índices de imágenes de baja calidad
 
   // Recorre las imágenes en el orden en que aparecen en el grid
   const imageItems = Array.from(imagesGrid.querySelectorAll('.image-item'));
 
   imageItems.forEach((item, index) => {
-    const imageId = item.dataset.imageId;
-    const data = uploadedImagesData.find(img => img.id === imageId);
-    const imgElement = item.querySelector('img');
-    const warningLabel = item.querySelector('.quality-warning');
+    const imageId = item.dataset.imageId; // Obtener el ID de la imagen
+    const data = uploadedImagesData.find(img => img.id === imageId); // Buscar en el array de datos
+    const imgElement = item.querySelector('img'); // Obtener el elemento de imagen
+    const warningLabel = item.querySelector('.quality-warning'); // Obtener la etiqueta de advertencia
 
-    const tempImg = new Image();
-    tempImg.src = imgElement.src;
+    const tempImg = new Image(); // Crear un nuevo objeto Image para cargar la imagen
+    tempImg.src = imgElement.src; // Asignar la URL de la imagen al objeto Image
 
     tempImg.onload = () => {
       const isLowQuality = tempImg.naturalWidth < minWidth || tempImg.naturalHeight < minHeight;
 
-      // Actualiza en el array de datos
+      // Actualiza el estado de calidad en el array global
       data.lowQuality = isLowQuality;
 
       // Modifica clases visuales y etiqueta
       if (isLowQuality) {
         item.classList.add('low-quality');
-        if (warningLabel) warningLabel.style.display = 'block';
+        if (warningLabel) warningLabel.style.display = 'block'; // Mostrar advertencia
         lowQualityIndexes.push(index + 1); // Índice basado en el orden del grid
       } else {
         item.classList.remove('low-quality');
-        if (warningLabel) warningLabel.style.display = 'none';
+        if (warningLabel) warningLabel.style.display = 'none'; // Ocultar advertencia
       }
 
-      // Después de terminar todas, mostrar advertencia si hay
+      // Si es la última imagen y hay imágenes de baja calidad, muestra una notificación
       if (index === imageItems.length - 1 && lowQualityIndexes.length > 0) {
-        const plural = lowQualityIndexes.length > 1;
-        const imagesStr = lowQualityIndexes.join(', ');
+        const plural = lowQualityIndexes.length > 1; // Determina si es plural
+        const imagesStr = lowQualityIndexes.join(', '); // Crear una cadena con los índices de las imágenes
         const message = plural
           ? `Las imágenes ${imagesStr} no tienen resolución suficiente para una impresión óptima en ${newSize.replace("X", "x")} cm.`
           : `La imagen ${imagesStr} no tiene resolución suficiente para una impresión óptima en ${newSize.replace("X", "x")} cm.`;
 
-        showNotification(message, 'error');
+        showNotification(message, 'error'); // Mostrar advertencia al usuario
       }
     };
   });
