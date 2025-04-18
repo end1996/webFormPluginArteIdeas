@@ -15,7 +15,6 @@ const sizePrices = {
   "30X60": 45.00,
 };
 
-
 document.addEventListener('DOMContentLoaded', function () {
   initializeSizePicker();
   initializeFramePicker();
@@ -49,7 +48,6 @@ function initializeSizePicker() {
     items: sizeOptions,
     initialValue: '10X15',
     onChange: (value) => {
-      console.log('Size picker changed to:', value);
       revalidateImagesWithNewSize(value); // Revalidar las imágenes con el nuevo tamaño
       updateTotalPrice(); // Actualizar el precio total
     }
@@ -63,10 +61,11 @@ function initializeFramePicker() {
   const pickerItems = framePicker.querySelectorAll('.swiper-slide');
   pickerItems.forEach(item => {
     item.addEventListener('click', function () {
-      if (uploadedImagesData.length === 0) {
-        showNotification('Sube una imagen primero', 'error');
-        return;
-      }
+      // Verificar si hay imágenes subidas antes de permitir la selección del marco
+      // if (uploadedImagesData.length === 0) {
+      //   showNotification('Sube una imagen primero', 'error');
+      //   return;
+      // }
       pickerItems.forEach(i => i.classList.remove('selected'));
       item.classList.add('selected');
       currentSelectedFrame = item.dataset.value;
@@ -80,7 +79,7 @@ function setupCommentLengthChecker() {
   commentArea.addEventListener('input', function () {
     const maxLength = 255;
     const currentLength = this.value.length;
-    
+
     if (currentLength >= maxLength) {
       showNotification('Has alcanzado el límite máximo de 255 caracteres en los comentarios.', 'error');
     }
@@ -89,6 +88,7 @@ function setupCommentLengthChecker() {
 
 function setupEventListeners() {
   const quantityInput = document.querySelector('.quantity-field input');
+
 
   quantityInput.addEventListener('focus', function () {
     if (this.value === '1') {
@@ -102,6 +102,7 @@ function setupEventListeners() {
     // Si es mayor a 100, vuelve al mismo valor
     if (value > 100) {
       this.value = 100;
+      showNotification('La cantidad no puede ser mayor a 100 unidades', 'error');
     }
 
     updateTotalPrice();
@@ -112,6 +113,7 @@ function setupEventListeners() {
 
     if (isNaN(value) || value < 1) {
       this.value = 1;
+
     }
   });
 
@@ -171,6 +173,7 @@ function handleCustomSize() {
   document.querySelector('.add-to-cart-btn').addEventListener('click', addToCart);
 }
 
+// Función para alternar entre opciones de tamaño estándar y personalizado
 function toggleSizeOptions(type) {
   if (type === 'standard') {
     document.getElementById('standard-sizes').style.display = 'block';
@@ -183,17 +186,49 @@ function toggleSizeOptions(type) {
   }
 }
 
+// Función para inicializar el visor de imágenes (Viewer.js) para las imágenes del Swiper
+function initializeViewerForSwiper() {
+  // Selecciona todas las imágenes dentro de las diapositivas del Swiper
+  const swiperImages = document.querySelectorAll('.swiper-slide img');
+
+  // Agrega un evento de clic a cada imagen
+  swiperImages.forEach((img) => {
+    img.addEventListener('click', function () {
+      // Inicializa Viewer.js para la imagen seleccionada
+      const viewer = new Viewer(img, {
+        inline: false, // Mostrar como modal
+        navbar: false, // Ocultar barra de navegación
+        toolbar: {
+          zoomIn: true,  // Habilitar zoom in
+          zoomOut: true, // Habilitar zoom out
+          oneToOne: false, // Deshabilitar botón "1:1"
+          reset: false, // Deshabilitar botón "Reset"
+          prev: false, // Deshabilitar botón "Anterior"
+          play: false, // Deshabilitar botón "Play"
+          next: false, // Deshabilitar botón "Siguiente"
+          rotateLeft: false, // Deshabilitar botón "Rotar izquierda"
+          rotateRight: false, // Deshabilitar botón "Rotar derecha"
+          flipHorizontal: false, // Deshabilitar botón "Voltear horizontal"
+          flipVertical: false, // Deshabilitar botón "Voltear vertical"
+        },
+        title: false, // Ocultar título
+        viewed() {
+          viewer.zoomTo(1); // Ajustar el zoom inicial
+        },
+      });
+
+      // Abre el visor
+      viewer.show();
+    });
+  });
+}
+
 function toggleFrameOptions(show) {
   document.getElementById('frame-ios-picker-wrapper').style.display = show ? 'block' : 'none';
 
   if (show) {
     if (!window.mySwiper) {
       window.mySwiper = new Swiper('.mySwiper', {
-        zoom: true,
-        zoom: {
-          maxRatio: 2,
-          minRatio: 1,
-        },
         effect: 'coverflow',
         grabCursor: true,
         centeredSlides: true,
@@ -209,6 +244,9 @@ function toggleFrameOptions(show) {
       });
     }
   }
+
+  // Inicializa Viewer.js para las imágenes del Swiper
+  initializeViewerForSwiper();
 }
 
 // Variables globales para almacenar las imágenes
@@ -262,7 +300,22 @@ uploadArea.addEventListener('drop', (e) => {
 // Función para manejar los archivos - Modificada para soportar múltiples imágenes
 function handleFiles(e) {
   const files = e.target.files; // Obtiene los archivos seleccionados
+  const isCustomSize = selectedOptionSize === 'custom'; // Verifica si el tamaño es personalizado
   const selectedSize = sizePicker.getValue(); // Obtiene el tamaño seleccionado
+
+  // Si es personalizado, obtiene los valores actuales de ancho y alto
+  let customWidth, customHeight;
+  if (isCustomSize) {
+    customWidth = parseInt(document.getElementById('custom-size__width').value);
+    customHeight = parseInt(document.getElementById('custom-size__height').value);
+
+    // Si los valores personalizados no son válidos, muestra una advertencia y detiene el proceso
+    if (isNaN(customWidth) || isNaN(customHeight)) {
+      showNotification("Por favor, ingresa un ancho y alto válidos para el tamaño personalizado.", "error");
+      return;
+    }
+  }
+
   const lowQualityIndexes = []; // Array para almacenar índices de imágenes de baja calidad
 
   if (files.length > 0) {
@@ -399,12 +452,77 @@ function getMinimumPixelsForImage(size) {
   return { minWidth, minHeight }; // Devuelve un objeto con los valores mínimos
 }
 
+// Nueva función para validar imágenes con tamaños personalizados
+function validateImagesWithCustomSize(customWidth, customHeight) {
+  const minWidth = customWidth * PIXELS_PER_CM; // Ancho mínimo en píxeles
+  console.log(`Ancho mínimo: ${minWidth}`);
+  const minHeight = customHeight * PIXELS_PER_CM; // Alto mínimo en píxeles
+  console.log(`Alto mínimo: ${minHeight}`);
+  const lowQualityIndexes = []; // Índices de imágenes de baja calidad
+
+  // Recorre las imágenes subidas
+  uploadedImagesData.forEach((imageData, index) => {
+    const imgElement = imagesGrid.querySelector(`[data-image-id="${imageData.id}"] img`);
+    const warningLabel = imagesGrid.querySelector(`[data-image-id="${imageData.id}"] .quality-warning`);
+
+    if (imgElement) {
+      const tempImg = new Image();
+      tempImg.src = imgElement.src;
+
+      tempImg.onload = () => {
+        const isLowQuality = tempImg.naturalWidth < minWidth || tempImg.naturalHeight < minHeight;
+
+        // Actualiza el estado de calidad en el array global
+        imageData.lowQuality = isLowQuality;
+
+        // Modifica clases visuales y etiqueta
+        if (isLowQuality) {
+          lowQualityIndexes.push(index + 1); // Índice basado en 1
+          warningLabel.style.display = 'block'; // Mostrar advertencia
+        } else {
+          warningLabel.style.display = 'none'; // Ocultar advertencia
+        }
+      };
+    }
+  });
+
+  // Mostrar notificación si hay imágenes de baja calidad
+  if (lowQualityIndexes.length > 0) {
+    const imagesStr = lowQualityIndexes.join(', ');
+    const plural = lowQualityIndexes.length > 1;
+    const message = plural
+      ? `Las imágenes ${imagesStr} no tienen resolución suficiente para una impresión óptima en ${customWidth}x${customHeight} cm.`
+      : `La imagen ${imagesStr} no tiene resolución suficiente para una impresión óptima en ${customWidth}x${customHeight} cm.`;
+
+    showNotification(message, 'error');
+  }
+}
+
+// Modificar el evento de entrada para tamaños personalizados
+document.getElementById("custom-size__width").addEventListener("input", function () {
+  const customWidth = parseInt(this.value);
+  const customHeight = parseInt(document.getElementById("custom-size__height").value);
+
+  if (!isNaN(customWidth) && !isNaN(customHeight)) {
+    validateImagesWithCustomSize(customWidth, customHeight);
+  }
+});
+
+document.getElementById("custom-size__height").addEventListener("input", function () {
+  const customWidth = parseInt(document.getElementById("custom-size__width").value);
+  const customHeight = parseInt(this.value);
+
+  if (!isNaN(customWidth) && !isNaN(customHeight)) {
+    validateImagesWithCustomSize(customWidth, customHeight);
+  }
+});
+
 // Modificado para incluir el nombre del archivo
 function analyzeImagePixels(img, imageSize, fileName) {
   const { minWidth, minHeight } = getMinimumPixelsForImage(imageSize); // Obtener los requisitos mínimos de píxeles 
 
   // Verificar si la imagen se ha cargado correctamente
-  if (img.naturalWidth === 0 || img.naturalHeight === 0) { 
+  if (img.naturalWidth === 0 || img.naturalHeight === 0) {
     return `La imagen "${fileName}" no se cargó correctamente.`;
   }
 
@@ -463,6 +581,14 @@ function revalidateImagesWithNewSize(newSize) {
   });
 }
 
+function getSelectedSizePrice() {
+  if (initializeSizePicker) {
+    console.log("🚀 initializeSizePicker() fue llamada correctamente");
+  }
+  const selectedSize = sizePicker.getValue(); // Obtener el tamaño seleccionado
+  return sizePrices[selectedSize] || 0; // Retornar el precio correspondiente
+}
+
 // Función para añadir al carrito - Modificada para procesar múltiples imágenes de forma secuencial
 function addToCart() {
   console.log("🚀 addToCart() fue llamada correctamente");
@@ -489,8 +615,12 @@ function addToCart() {
     size = `${customWidth}x${customHeight}`;
   } else {
     size = sizePicker.getValue();
+    pricePerUnit = getSelectedSizePrice(); // Obtener el precio del tamaño seleccionado
   }
 
+  // const totalPrice = pricePerUnit * quantity * uploadedImagesData.length; // Calcular el precio total
+  // console.log(`💰 Precio total: S/. ${totalPrice.toFixed(2)}`);
+  
   const comments = document.querySelector('.comment-area').value;
   const withFrame = document.querySelector('input[name="frame"]:checked').value !== 'sin-marco';
   let frame = 'sin-marco';
@@ -535,6 +665,7 @@ function addToCart() {
       formData.append('image_data', imageData.file);
       formData.append('quantity', quantity);
       formData.append('size', size);
+      formData.append('price', pricePerUnit); // Precio unitario
       formData.append('is_custom_size', isCustomSize);
       formData.append('custom_width', customWidth || 0);
       formData.append('custom_height', customHeight || 0);

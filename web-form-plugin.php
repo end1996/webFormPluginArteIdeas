@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.0.2
+Version: 3.0.4
 Author: Enmanuel
 */
 
@@ -42,14 +42,20 @@ function web_form_shortcode()
     // Cargar Swiper CSS desde CDN
     wp_enqueue_style('swiper-css', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css', array(), '11.0.0');
 
+    // Cargar Viewer CSS desde CDN
+    wp_enqueue_style('viewer-css', 'https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.7/viewer.css', array(), '1.11.7');
+
     // Cargar IOS-Picker
     wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.1', true);
 
     // Cargar JS
-    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.5.2', true);
+    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.5.6', true);
 
     // Cargar Swiper JS desde CDN (depende de jQuery)
     wp_enqueue_script('swiper-js', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', array('jquery'), '11.0.0', true);
+
+    // Cargar Viewer JS desde CDN
+    wp_enqueue_script('viewer-js', 'https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.7/viewer.min.js', array('jquery'), '1.11.7', true);
 
     // Aumentar límites para POST y uploads
     @ini_set('post_max_size', '64M');
@@ -88,6 +94,7 @@ function process_print_image_to_cart()
 
     $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 1;
     $size = isset($_POST['size']) ? sanitize_text_field($_POST['size']) : '';
+    $price = isset($_POST['price']) ? floatval($_POST['price']) : 0.0;
     $comments = isset($_POST['comments']) ? sanitize_textarea_field($_POST['comments']) : '';
     $frame = isset($_POST['frame']) ? sanitize_text_field($_POST['frame']) : 'sin-marco';
     $custom_width = isset($_POST['custom_width']) ? intval($_POST['custom_width']) : 0;
@@ -154,6 +161,7 @@ function process_print_image_to_cart()
         'print_image_data' => array(
             'image_url' => esc_url($image_url),
             'size' => $is_custom_size ? "{$custom_width}x{$custom_height}" : $size,
+            'price' => $price,
             'is_custom_size' => $is_custom_size,
             'frame' => $frame,
             'comments' => $comments,
@@ -232,6 +240,24 @@ function display_cart_product($product_images, $cart_item, $cart_item_key)
 }
 
 add_filter('woocommerce_store_api_cart_item_images', 'display_cart_product', 10, 3);
+
+// Actualizar el precio del producto en el carrito
+function update_cart_item_price($cart)
+{
+    // Evitar que se ejecute varias veces
+    if (did_action('woocommerce_before_calculate_totals') >= 2) {
+        return;
+    }
+
+    // Iterar sobre los productos en el carrito
+    foreach ($cart->get_cart() as $cart_item) {
+        if (isset($cart_item['print_image_data']['price'])) {
+            $custom_price = floatval($cart_item['print_image_data']['price']); // Precio personalizado
+            $cart_item['data']->set_price($custom_price); // Actualizar el precio del producto
+        }
+    }
+}
+add_action('woocommerce_before_calculate_totals', 'update_cart_item_price', 10, 1);
 
 function display_print_image_cart_item_data($item_data, $cart_item)
 {
