@@ -158,7 +158,7 @@ body {
   }
   
   .comment-area {
-    width: calc(100% - 10px);
+    width: calc(95% - 10px);
     min-height: 80px;
     padding: 20px;
     border: 1px solid #dee2e6;
@@ -259,7 +259,7 @@ body {
   }
 
     .custom-size {
-      width: 100%;
+      width: 110%;
       padding: 0;
       margin: 0 auto;
     }
@@ -293,6 +293,13 @@ body {
   .images-grid {
       grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   }
+
+  .custom-size {
+    width: 110%;
+    padding: 0;
+    margin: 0 auto;
+  }
+
 
     .frames {
       padding: 0 30px;
