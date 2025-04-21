@@ -159,6 +159,7 @@ function process_print_image_to_cart()
     // Guardar la imagen en los metadatos del carrito
     $cart_item_data = array(
         'print_image_data' => array(
+            'id'=> $filename, // ID único para la imagen
             'image_url' => esc_url($image_url),
             'size' => $is_custom_size ? "{$custom_width}x{$custom_height}" : $size,
             'price' => $price,
@@ -240,6 +241,31 @@ function display_cart_product($product_images, $cart_item, $cart_item_key)
 }
 
 add_filter('woocommerce_store_api_cart_item_images', 'display_cart_product', 10, 3);
+function reemplazar_thumbnail_por_print_image($thumbnail, $item) {
+    // Si $item es un integer, se asume que es el ID del item, por lo que cargamos el objeto
+    if (is_int($item)) {
+        error_log('ℹ️ Recibido ID de item: ' . $item);
+        $item = new WC_Order_Item_Product($item);
+    }
+
+    // Verificar que ahora sí es un objeto válido
+    if ($item instanceof WC_Order_Item_Product) {
+        $print_image_url = $item->get_meta('URL', true);
+        error_log('🖼️ Metadato _print_image_url: ' . $print_image_url);
+
+        if (!empty($print_image_url)) {
+            $thumbnail = '<img src="' . esc_url($print_image_url) . '" alt="Imagen personalizada" height: auto; />';
+        }
+    } else {
+        // Aún no es el objeto esperado, log más detallado
+        $tipo = is_object($item) ? get_class($item) : gettype($item);
+        error_log('⚠️ Tipo de $item inesperado después de conversión: ' . $tipo);
+    }
+
+    return $thumbnail;
+}
+add_filter('woocommerce_admin_order_item_thumbnail', 'reemplazar_thumbnail_por_print_image', 10, 2);
+
 
 // Actualizar el precio del producto en el carrito
 function update_cart_item_price($cart)
@@ -308,7 +334,10 @@ function save_print_image_order_item_meta($item, $cart_item_key, $values, $order
         }
 
         // Guardar la URL de la imagen para referencia
-        $item->add_meta_data('_print_image_url', $print_data['image_url'], true);
+        $item->add_meta_data('URL', $print_data['image_url'], true);
+
+        // Guardar el ID único de la imagen
+        $item->add_meta_data('ID', $print_data['id'], true);
     }
 }
 add_action('woocommerce_checkout_create_order_line_item', 'save_print_image_order_item_meta', 10, 4);
