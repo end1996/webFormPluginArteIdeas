@@ -573,3 +573,15 @@ input.error, textarea.error {
     max-width: 80%;
   }
 }
+
+.viewer-zoom-in {
+  background-color: #f7703a !important;
+}
+
+.viewer-zoom-out {
+  background-color: #f7703a !important;
+}
+
+.viewer-close {
+  background-color: #af1b1b !important;
+}

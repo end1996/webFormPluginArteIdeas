@@ -199,8 +199,16 @@ function initializeViewerForSwiper() {
         inline: false, // Mostrar como modal
         navbar: false, // Ocultar barra de navegación
         toolbar: {
-          zoomIn: true,  // Habilitar zoom in
-          zoomOut: true, // Habilitar zoom out
+          zoomIn: {
+            show: true, // Habilitar zoom in
+            title: 'Zoom In',
+            size: 'large',
+          },  // Habilitar zoom in
+          zoomOut: {
+            show: true, // Habilitar zoom out
+            title: 'Zoom Out',
+            size: 'large',
+          }, // Habilitar zoom out
           oneToOne: false, // Deshabilitar botón "1:1"
           reset: false, // Deshabilitar botón "Reset"
           prev: false, // Deshabilitar botón "Anterior"
