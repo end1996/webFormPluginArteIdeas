@@ -585,3 +585,16 @@ input.error, textarea.error {
 .viewer-close {
   background-color: #af1b1b !important;
 }
+
+.zoom-icon-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  top: 10px;
+}

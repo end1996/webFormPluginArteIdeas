@@ -245,46 +245,68 @@ function toggleSizeOptions(type) {
 
 // Función para inicializar el visor de imágenes (Viewer.js) para las imágenes del Swiper
 function initializeViewerForSwiper() {
-  // Selecciona todas las imágenes dentro de las diapositivas del Swiper
-  const swiperImages = document.querySelectorAll('.swiper-slide img');
+  const slides = document.querySelectorAll('.swiper-slide');
 
-  // Agrega un evento de clic a cada imagen
-  swiperImages.forEach((img) => {
-    img.addEventListener('click', function () {
-      // Inicializa Viewer.js para la imagen seleccionada
-      const viewer = new Viewer(img, {
-        inline: false, // Mostrar como modal
-        navbar: false, // Ocultar barra de navegación
-        toolbar: {
-          zoomIn: {
-            show: true, // Habilitar zoom in
-            title: 'Zoom In',
-            size: 'large',
-          },  // Habilitar zoom in
-          zoomOut: {
-            show: true, // Habilitar zoom out
-            title: 'Zoom Out',
-            size: 'large',
-          }, // Habilitar zoom out
-          oneToOne: false, // Deshabilitar botón "1:1"
-          reset: false, // Deshabilitar botón "Reset"
-          prev: false, // Deshabilitar botón "Anterior"
-          play: false, // Deshabilitar botón "Play"
-          next: false, // Deshabilitar botón "Siguiente"
-          rotateLeft: false, // Deshabilitar botón "Rotar izquierda"
-          rotateRight: false, // Deshabilitar botón "Rotar derecha"
-          flipHorizontal: false, // Deshabilitar botón "Voltear horizontal"
-          flipVertical: false, // Deshabilitar botón "Voltear vertical"
-        },
-        title: false, // Ocultar título
-        viewed() {
-          viewer.zoomTo(1); // Ajustar el zoom inicial
-        },
+  slides.forEach((slide) => {
+    const img = slide.querySelector('img'); // Busca la imagen dentro del slide
+    const btn = slide.querySelector('.zoom-icon-btn'); //Busca el botón con clase .zoom-icon-btn dentro del slide
+
+    if (btn && img) {
+      let viewerInstance = null;
+       // Agrega un evento de clic al botón de zoom
+      btn.addEventListener('click', function (event) {
+        event.stopPropagation();
+
+        // Evita crear múltiples viewers
+        if (viewerInstance) {
+          viewerInstance.destroy();
+        }
+
+        // Crea un contenedor temporal solo para zoom
+        const clone = img.cloneNode(true);
+        const tempContainer = document.createElement('div');
+        tempContainer.style.display = 'none';
+        tempContainer.appendChild(clone);
+        document.body.appendChild(tempContainer);
+
+        viewerInstance = new Viewer(clone, {
+          inline: false,
+          navbar: false,
+          title: false,
+          toolbar: {
+            zoomIn: { // Habilitar zoom in
+               show: true, 
+               title: 'Zoom In', 
+               size: 'large'
+             },
+            zoomOut: { // Habilitar zoom out
+               show: true, 
+               title: 'Zoom Out', 
+               size: 'large'
+             },
+            oneToOne: false,
+            reset: false,
+            prev: false,
+            play: false,
+            next: false,
+            rotateLeft: false,
+            rotateRight: false,
+            flipHorizontal: false,
+            flipVertical: false,
+          },
+          viewed() {
+            viewerInstance.zoomTo(1);
+          },
+          hidden() {
+            viewerInstance.destroy();
+            tempContainer.remove();
+            viewerInstance = null;
+          }
+        });
+       // Muestra el visor
+        viewerInstance.show();
       });
-
-      // Abre el visor
-      viewer.show();
-    });
+    }
   });
 }
 
@@ -465,15 +487,15 @@ function handleFiles(e) {
         pending--; // Decrementar el contador de pendientes
 
         // Si todas las imágenes han sido procesadas, mostrar advertencia si hay imágenes de baja calidad
-        if (pending === 0 && lowQualityIndexes.length > 0) {
-          const imagesStr = lowQualityIndexes.join(', '); // Crear una cadena con los índices de las imágenes
-          const plural = lowQualityIndexes.length > 1; // Determina si es plural
-          const message = plural
-            ? `Las imágenes ${imagesStr} no tienen resolución suficiente para una impresión óptima en ${selectedSize.replace("X", "x")} cm.`
-            : `La imagen ${imagesStr} no tiene resolución suficiente para una impresión óptima en ${selectedSize.replace("X", "x")} cm.`;
+        // if (pending === 0 && lowQualityIndexes.length > 0) {
+        //   const imagesStr = lowQualityIndexes.join(', '); // Crear una cadena con los índices de las imágenes
+        //   const plural = lowQualityIndexes.length > 1; // Determina si es plural
+        //   const message = plural
+        //     ? `Las imágenes ${imagesStr} no tienen resolución suficiente para una impresión óptima en ${selectedSize.replace("X", "x")} cm.`
+        //     : `La imagen ${imagesStr} no tiene resolución suficiente para una impresión óptima en ${selectedSize.replace("X", "x")} cm.`;
 
-          showNotification(message, 'error'); // Mostrar advertencia al usuario
-        }
+        //   showNotification(message, 'error'); // Mostrar advertencia al usuario
+        // }
       };
     };
 
@@ -552,15 +574,15 @@ function validateImagesWithCustomSize(customWidth, customHeight) {
   });
 
   // Mostrar notificación si hay imágenes de baja calidad
-  if (lowQualityIndexes.length > 0) {
-    const imagesStr = lowQualityIndexes.join(', ');
-    const plural = lowQualityIndexes.length > 1;
-    const message = plural
-      ? `Las imágenes ${imagesStr} no tienen resolución suficiente para una impresión óptima en ${customWidth}x${customHeight} cm.`
-      : `La imagen ${imagesStr} no tiene resolución suficiente para una impresión óptima en ${customWidth}x${customHeight} cm.`;
+  // if (lowQualityIndexes.length > 0) {
+  //   const imagesStr = lowQualityIndexes.join(', ');
+  //   const plural = lowQualityIndexes.length > 1;
+  //   const message = plural
+  //     ? `Las imágenes ${imagesStr} no tienen resolución suficiente para una impresión óptima en ${customWidth}x${customHeight} cm.`
+  //     : `La imagen ${imagesStr} no tiene resolución suficiente para una impresión óptima en ${customWidth}x${customHeight} cm.`;
 
-    showNotification(message, 'error');
-  }
+  //   showNotification(message, 'error');
+  // }
 }
 
 // Modificar el evento de entrada para tamaños personalizados
@@ -633,15 +655,15 @@ function revalidateImagesWithNewSize(newSize) {
       }
 
       // Si es la última imagen y hay imágenes de baja calidad, muestra una notificación
-      if (index === imageItems.length - 1 && lowQualityIndexes.length > 0) {
-        const plural = lowQualityIndexes.length > 1; // Determina si es plural
-        const imagesStr = lowQualityIndexes.join(', '); // Crear una cadena con los índices de las imágenes
-        const message = plural
-          ? `Las imágenes ${imagesStr} no tienen resolución suficiente para una impresión óptima en ${newSize.replace("X", "x")} cm.`
-          : `La imagen ${imagesStr} no tiene resolución suficiente para una impresión óptima en ${newSize.replace("X", "x")} cm.`;
+      // if (index === imageItems.length - 1 && lowQualityIndexes.length > 0) {
+      //   const plural = lowQualityIndexes.length > 1; // Determina si es plural
+      //   const imagesStr = lowQualityIndexes.join(', '); // Crear una cadena con los índices de las imágenes
+      //   const message = plural
+      //     ? `Las imágenes ${imagesStr} no tienen resolución suficiente para una impresión óptima en ${newSize.replace("X", "x")} cm.`
+      //     : `La imagen ${imagesStr} no tiene resolución suficiente para una impresión óptima en ${newSize.replace("X", "x")} cm.`;
 
-        showNotification(message, 'error'); // Mostrar advertencia al usuario
-      }
+      //   showNotification(message, 'error'); // Mostrar advertencia al usuario
+      // }
     };
   });
 }
