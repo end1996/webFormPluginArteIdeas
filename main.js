@@ -3,6 +3,8 @@ var selectedOptionSize;
 let currentSelectedFrame = 'frame1'; // Valor por defecto para el marco
 let uploadedImagesData = []; // Array para almacenar múltiples imágenes
 let sizePicker;
+let selectedSize;
+let currentSizePrices;
 
 const sizePrices = {
   "10X15": 5.00,
@@ -13,6 +15,30 @@ const sizePrices = {
   "25X38": 25.00,
   "30X45": 35.00,
   "30X60": 45.00,
+};
+
+// Precios para cantidades mayores o iguales a 4
+const bulkSizePrices = {
+  "10X15": 3.00,
+  "13X18": 5.00,
+  "15X21": 6.00,
+  "20X25": 13.00,
+  "20X30": 15.00,
+  "25X38": 20.00,
+  "30X45": 30.00,
+  "30X60": 40.00,
+};
+
+// Precios para cantidades mayores o iguales a 12
+const bulkSizePrices12 = {
+  "10X15": 2.50,
+  "13X18": 4.00,
+  "15X21": 5.00,
+  "20X25": 10.00,
+  "20X30": 12.00,
+  "25X38": 18.00,
+  "30X45": 25.00,
+  "30X60": 35.00,
 };
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -38,21 +64,52 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function initializeSizePicker() {
-  const sizeOptions = Object.keys(sizePrices).map(value => ({
-    value: value,
-    label: `${value.replace("X", "cm Ancho X ")}cm Alto => (S/.${sizePrices[value].toFixed(2)})`
-  }));
+  const quantityInput = document.querySelector('.quantity-field input');
+  const sizePickerContainer = document.getElementById('size-picker');
 
-  sizePicker = new iOSPicker({
-    container: document.getElementById('size-picker'),
-    items: sizeOptions,
-    initialValue: '10X15',
-    onChange: (value) => {
-      revalidateImagesWithNewSize(value); // Revalidar las imágenes con el nuevo tamaño
-      updateTotalPrice(); // Actualizar el precio total
+  function getCurrentSizePrices(quantity) {
+    return quantity >= 12 ? bulkSizePrices12 : (quantity >= 4 ? bulkSizePrices : sizePrices);
+  }
+
+  function updateSizeOptions(quantity) {
+    currentSizePrices = getCurrentSizePrices(quantity);
+    const sizeOptions = Object.keys(currentSizePrices).map(value => ({
+      value: value,
+      label: `${value.replace("X", "cm Ancho X ")}cm Alto => (S/.${currentSizePrices[value].toFixed(2)})`
+    }));
+
+    // Guardar el valor actual antes de destruir
+    const previousValue = selectedSize;
+
+    // Si ya existe, destruir el picker
+    if (sizePicker) {
+      sizePicker.destroy();
     }
+
+    // Crear el picker con el valor anterior si existe, si no, usar el inicial
+    sizePicker = new iOSPicker({
+      container: sizePickerContainer,
+      items: sizeOptions,
+      initialValue: previousValue,
+      onChange: (value) => {
+        selectedSize = value; // Guardar nuevo valor seleccionado
+        revalidateImagesWithNewSize(value);
+        updateTotalPrice();
+      }
+    });
+  }
+
+  // Inicializar con cantidad 1
+  updateSizeOptions(1);
+
+  // Escuchar cambios en cantidad
+  quantityInput.addEventListener('input', function () {
+    const quantity = parseInt(this.value) || 1;
+    console.log(`Cantidad ingresada: ${quantity}`);
+    updateSizeOptions(quantity);
   });
 }
+
 
 function initializeFramePicker() {
   const framePicker = document.getElementById('frame-picker');
@@ -309,7 +366,7 @@ uploadArea.addEventListener('drop', (e) => {
 function handleFiles(e) {
   const files = e.target.files; // Obtiene los archivos seleccionados
   const isCustomSize = selectedOptionSize === 'custom'; // Verifica si el tamaño es personalizado
-  const selectedSize = sizePicker.getValue(); // Obtiene el tamaño seleccionado
+  selectedSize = sizePicker.getValue(); // Obtiene el tamaño seleccionado
 
   // Si es personalizado, obtiene los valores actuales de ancho y alto
   let customWidth, customHeight;
@@ -593,8 +650,8 @@ function getSelectedSizePrice() {
   if (initializeSizePicker) {
     console.log("🚀 initializeSizePicker() fue llamada correctamente");
   }
-  const selectedSize = sizePicker.getValue(); // Obtener el tamaño seleccionado
-  return sizePrices[selectedSize] || 0; // Retornar el precio correspondiente
+  selectedSize = sizePicker.getValue(); // Obtener el tamaño seleccionado
+  return currentSizePrices[selectedSize] || 0; // Retornar el precio correspondiente
 }
 
 // Función para añadir al carrito - Modificada para procesar múltiples imágenes de forma secuencial
@@ -816,12 +873,12 @@ function updateTotalPrice() {
   const quantity = parseInt(document.querySelector('.quantity-field input').value) || 1;
 
   // Use the sizePicker instance to get the value instead of DOM selection
-  const selectedSize = sizePicker.getValue();
+  selectedSize = sizePicker.getValue();
 
   let pricePerUnit = 0;
 
   if (selectedSize) {
-    pricePerUnit = sizePrices[selectedSize] || 0;
+    pricePerUnit = currentSizePrices[selectedSize] || 0;
   }
 
   // Calculate the total price considering all images
