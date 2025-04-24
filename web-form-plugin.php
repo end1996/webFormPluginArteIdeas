@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.0.5
+Version: 3.0.6
 Author: Enmanuel
 */
 
@@ -268,22 +268,70 @@ add_filter('woocommerce_admin_order_item_thumbnail', 'reemplazar_thumbnail_por_p
 
 
 // Actualizar el precio del producto en el carrito
-function update_cart_item_price($cart)
-{
-    // Evitar que se ejecute varias veces
-    if (did_action('woocommerce_before_calculate_totals') >= 2) {
+function update_cart_item_price($cart) {
+    if (did_action('woocommerce_before_calculate_totals') >= 2 || is_admin() && !defined('DOING_AJAX')) {
         return;
     }
 
-    // Iterar sobre los productos en el carrito
-    foreach ($cart->get_cart() as $cart_item) {
-        if (isset($cart_item['print_image_data']['price'])) {
-            $custom_price = floatval($cart_item['print_image_data']['price']); // Precio personalizado
-            $cart_item['data']->set_price($custom_price); // Actualizar el precio del producto
+    // Definir precios por tamaño y cantidad
+    $size_prices = [
+        "10X15" => 5.00,
+        "13X18" => 7.00,
+        "15X21" => 8.00,
+        "20X25" => 15.00,
+        "20X30" => 18.00,
+        "25X38" => 25.00,
+        "30X45" => 35.00,
+        "30X60" => 45.00,
+    ];
+    // Descuentos por cantidad mayor a 4
+    $bulk_size_prices = [
+        "10X15" => 3.00,
+        "13X18" => 5.00,
+        "15X21" => 6.00,
+        "20X25" => 13.00,
+        "20X30" => 15.00,
+        "25X38" => 20.00,
+        "30X45" => 30.00,
+        "30X60" => 40.00,
+    ];
+    // Descuentos por cantidad mayor a 12
+    $bulk_size_prices_12 = [
+        "10X15" => 2.50,
+        "13X18" => 4.00,
+        "15X21" => 5.00,
+        "20X25" => 10.00,
+        "20X30" => 12.00,
+        "25X38" => 18.00,
+        "30X45" => 25.00,
+        "30X60" => 35.00,
+    ];
+    // Recorrer los artículos del carrito
+    foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
+        $product = $cart_item['data'];
+        $quantity = $cart_item['quantity'];
+
+        // Obtener el tamaño del producto (asumiendo que se guarda en un campo personalizado)
+        $size = isset($cart_item['print_image_data']['size']) ? $cart_item['print_image_data']['size'] : '';
+
+        // Aplicar precio según tamaño y cantidad
+        if (!empty($size)) {
+            if ($quantity >= 12 && isset($bulk_size_prices_12[$size])) {
+                $precio_final = $bulk_size_prices_12[$size];
+            } elseif ($quantity >= 4 && isset($bulk_size_prices[$size])) {
+                $precio_final = $bulk_size_prices[$size];
+            } elseif (isset($size_prices[$size])) {
+                $precio_final = $size_prices[$size];
+            }
+
+            // Asignar el precio final al producto
+            if (isset($precio_final)) {
+                $product->set_price($precio_final);
+            }
         }
     }
 }
-add_action('woocommerce_before_calculate_totals', 'update_cart_item_price', 10, 1);
+add_action('woocommerce_before_calculate_totals', 'update_cart_item_price', 20, 1);
 
 function display_print_image_cart_item_data($item_data, $cart_item)
 {
