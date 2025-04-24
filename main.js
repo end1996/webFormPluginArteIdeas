@@ -253,7 +253,7 @@ function initializeViewerForSwiper() {
 
     if (btn && img) {
       let viewerInstance = null;
-       // Agrega un evento de clic al botón de zoom
+      // Agrega un evento de clic al botón de zoom
       btn.addEventListener('click', function (event) {
         event.stopPropagation();
 
@@ -275,15 +275,15 @@ function initializeViewerForSwiper() {
           title: false,
           toolbar: {
             zoomIn: { // Habilitar zoom in
-               show: true, 
-               title: 'Zoom In', 
-               size: 'large'
-             },
+              show: true,
+              title: 'Zoom In',
+              size: 'large'
+            },
             zoomOut: { // Habilitar zoom out
-               show: true, 
-               title: 'Zoom Out', 
-               size: 'large'
-             },
+              show: true,
+              title: 'Zoom Out',
+              size: 'large'
+            },
             oneToOne: false,
             reset: false,
             prev: false,
@@ -303,7 +303,7 @@ function initializeViewerForSwiper() {
             viewerInstance = null;
           }
         });
-       // Muestra el visor
+        // Muestra el visor
         viewerInstance.show();
       });
     }
@@ -707,7 +707,7 @@ function addToCart() {
 
   // const totalPrice = pricePerUnit * quantity * uploadedImagesData.length; // Calcular el precio total
   // console.log(`💰 Precio total: S/. ${totalPrice.toFixed(2)}`);
-  
+
   const comments = document.querySelector('.comment-area').value;
   const withFrame = document.querySelector('input[name="frame"]:checked').value !== 'sin-marco';
   let frame = 'sin-marco';

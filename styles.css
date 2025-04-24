@@ -170,8 +170,9 @@ body {
   
 /* Frame picker carrousel */
 .container {
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
+  width: 90%;
 }
 
 .swiper {
@@ -259,7 +260,7 @@ body {
   }
 
     .custom-size {
-      width: 110%;
+      width: 10%;
       padding: 0;
       margin: 0 auto;
     }
