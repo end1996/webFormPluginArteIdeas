@@ -30,7 +30,7 @@
             <div class="section-title">
                 <label>Cantidad</label>
                 <div class="quantity-field">
-                    <input type="number" value="1" min="1" max="100" step="1">
+                    <input type="number" value="1" min="1" max="1000" step="1">
                 </div>
             </div>
         </div>
@@ -64,7 +64,7 @@
 
     <div class="section">
         <div class="section-title">
-            Comentarios adicionales
+            Comentarios adicionales para tu diseño
         </div>
 
         <textarea class="comment-area" placeholder=" Escribe aquí tus comentarios..." maxlength="255"></textarea>

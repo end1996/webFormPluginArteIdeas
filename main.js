@@ -48,17 +48,17 @@ document.addEventListener('DOMContentLoaded', function () {
   setupCommentLengthChecker();
 
   // Initialize image counter
-  const counterElement = document.createElement('div');
-  counterElement.id = 'images-counter';
-  counterElement.className = 'images-counter';
-  counterElement.textContent = '0';
-  counterElement.style.display = 'none'; // Initially hidden
+  // const counterElement = document.createElement('div');
+  // counterElement.id = 'images-counter';
+  // counterElement.className = 'images-counter';
+  // counterElement.textContent = '0';
+  // counterElement.style.display = 'none'; // Initially hidden
 
-  // Insert counter after upload area
-  const uploadAreaParent = document.getElementById('upload-area').parentElement;
-  if (uploadAreaParent) {
-    uploadAreaParent.insertBefore(counterElement, document.getElementById('upload-area').nextSibling);
-  }
+  // // Insert counter after upload area
+  // const uploadAreaParent = document.getElementById('upload-area').parentElement;
+  // if (uploadAreaParent) {
+  //   uploadAreaParent.insertBefore(counterElement, document.getElementById('upload-area').nextSibling);
+  // }
 
   updateTotalPrice();
 });
@@ -156,11 +156,11 @@ function setupEventListeners() {
   quantityInput.addEventListener('input', function () {
     let value = parseInt(this.value);
 
-    // Si es mayor a 100, vuelve al mismo valor
-    if (value > 100) {
-      this.value = 100;
-      showNotification('La cantidad no puede ser mayor a 100 unidades', 'error');
-    }
+ // Si es mayor a 1000, vuelve al mismo valor
+     if (value > 1000) {
+       this.value = 1000;
+       showNotification('La cantidad no puede ser mayor a 1000 unidades', 'error');
+     }
 
     updateTotalPrice();
   });
@@ -523,9 +523,9 @@ function updateImageCounter() {
   }
 
   // Mostrar u ocultar contador según tengamos imágenes
-  if (counter) {
-    counter.style.display = uploadedImagesData.length > 0 ? 'block' : 'none';
-  }
+  // if (counter) {
+  //   counter.style.display = uploadedImagesData.length > 0 ? 'block' : 'none';
+  // }
 }
 
 // Factor de conversión de cm a píxeles (ajusta según la calidad requerida)
@@ -904,7 +904,7 @@ function updateTotalPrice() {
   }
 
   // Calculate the total price considering all images
-  const totalPrice = pricePerUnit * quantity * uploadedImagesData.length;
+  const totalPrice = pricePerUnit * quantity;
 
   // Round
   const roundedPrice = totalPrice.toFixed(2);
