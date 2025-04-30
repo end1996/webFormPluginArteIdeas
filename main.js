@@ -47,19 +47,6 @@ document.addEventListener('DOMContentLoaded', function () {
   setupEventListeners();
   setupCommentLengthChecker();
 
-  // Initialize image counter
-  // const counterElement = document.createElement('div');
-  // counterElement.id = 'images-counter';
-  // counterElement.className = 'images-counter';
-  // counterElement.textContent = '0';
-  // counterElement.style.display = 'none'; // Initially hidden
-
-  // // Insert counter after upload area
-  // const uploadAreaParent = document.getElementById('upload-area').parentElement;
-  // if (uploadAreaParent) {
-  //   uploadAreaParent.insertBefore(counterElement, document.getElementById('upload-area').nextSibling);
-  // }
-
   updateTotalPrice();
 });
 
@@ -118,11 +105,6 @@ function initializeFramePicker() {
   const pickerItems = framePicker.querySelectorAll('.swiper-slide');
   pickerItems.forEach(item => {
     item.addEventListener('click', function () {
-      // Verificar si hay imágenes subidas antes de permitir la selección del marco
-      // if (uploadedImagesData.length === 0) {
-      //   showNotification('Sube una imagen primero', 'error');
-      //   return;
-      // }
       pickerItems.forEach(i => i.classList.remove('selected'));
       item.classList.add('selected');
       currentSelectedFrame = item.dataset.value;
@@ -465,7 +447,6 @@ function handleFiles(e) {
           if (imagesGrid.children.length === 0) {
             uploadElements.classList.remove('has-images'); // Remover clase si no hay imágenes
           }
-          updateImageCounter(); // Actualizar el contador de imágenes
           updateTotalPrice(); // Actualizar el precio total
         });
 
@@ -481,21 +462,9 @@ function handleFiles(e) {
         imageItem.appendChild(removeBtn);
         imagesGrid.appendChild(imageItem);
 
-        updateImageCounter(); // Actualizar el contador de imágenes
         updateTotalPrice(); // Actualizar el precio total
 
         pending--; // Decrementar el contador de pendientes
-
-        // Si todas las imágenes han sido procesadas, mostrar advertencia si hay imágenes de baja calidad
-        // if (pending === 0 && lowQualityIndexes.length > 0) {
-        //   const imagesStr = lowQualityIndexes.join(', '); // Crear una cadena con los índices de las imágenes
-        //   const plural = lowQualityIndexes.length > 1; // Determina si es plural
-        //   const message = plural
-        //     ? `Las imágenes ${imagesStr} no tienen resolución suficiente para una impresión óptima en ${selectedSize.replace("X", "x")} cm.`
-        //     : `La imagen ${imagesStr} no tiene resolución suficiente para una impresión óptima en ${selectedSize.replace("X", "x")} cm.`;
-
-        //   showNotification(message, 'error'); // Mostrar advertencia al usuario
-        // }
       };
     };
 
@@ -503,29 +472,6 @@ function handleFiles(e) {
   }
 
   fileInput.value = ''; // Resetea el input para permitir subir el mismo archivo otra vez
-}
-
-// Función para actualizar el contador de imágenes
-function updateImageCounter() {
-  const counter = document.getElementById('images-counter');
-  if (counter) {
-    counter.textContent = uploadedImagesData.length;
-  } else {
-    // Si no existe el contador, lo creamos
-    const counterElement = document.createElement('div');
-    counterElement.id = 'images-counter';
-    counterElement.className = 'images-counter';
-    counterElement.textContent = uploadedImagesData.length;
-
-    // Insertamos el contador cerca del área de subida
-    const uploadAreaParent = uploadArea.parentElement;
-    uploadAreaParent.insertBefore(counterElement, uploadArea.nextSibling);
-  }
-
-  // Mostrar u ocultar contador según tengamos imágenes
-  // if (counter) {
-  //   counter.style.display = uploadedImagesData.length > 0 ? 'block' : 'none';
-  // }
 }
 
 // Factor de conversión de cm a píxeles (ajusta según la calidad requerida)
@@ -572,17 +518,6 @@ function validateImagesWithCustomSize(customWidth, customHeight) {
       };
     }
   });
-
-  // Mostrar notificación si hay imágenes de baja calidad
-  // if (lowQualityIndexes.length > 0) {
-  //   const imagesStr = lowQualityIndexes.join(', ');
-  //   const plural = lowQualityIndexes.length > 1;
-  //   const message = plural
-  //     ? `Las imágenes ${imagesStr} no tienen resolución suficiente para una impresión óptima en ${customWidth}x${customHeight} cm.`
-  //     : `La imagen ${imagesStr} no tiene resolución suficiente para una impresión óptima en ${customWidth}x${customHeight} cm.`;
-
-  //   showNotification(message, 'error');
-  // }
 }
 
 // Modificar el evento de entrada para tamaños personalizados
@@ -653,17 +588,6 @@ function revalidateImagesWithNewSize(newSize) {
         item.classList.remove('low-quality');
         if (warningLabel) warningLabel.style.display = 'none'; // Ocultar advertencia
       }
-
-      // Si es la última imagen y hay imágenes de baja calidad, muestra una notificación
-      // if (index === imageItems.length - 1 && lowQualityIndexes.length > 0) {
-      //   const plural = lowQualityIndexes.length > 1; // Determina si es plural
-      //   const imagesStr = lowQualityIndexes.join(', '); // Crear una cadena con los índices de las imágenes
-      //   const message = plural
-      //     ? `Las imágenes ${imagesStr} no tienen resolución suficiente para una impresión óptima en ${newSize.replace("X", "x")} cm.`
-      //     : `La imagen ${imagesStr} no tiene resolución suficiente para una impresión óptima en ${newSize.replace("X", "x")} cm.`;
-
-      //   showNotification(message, 'error'); // Mostrar advertencia al usuario
-      // }
     };
   });
 }
@@ -704,9 +628,6 @@ function addToCart() {
     size = sizePicker.getValue();
     pricePerUnit = getSelectedSizePrice(); // Obtener el precio del tamaño seleccionado
   }
-
-  // const totalPrice = pricePerUnit * quantity * uploadedImagesData.length; // Calcular el precio total
-  // console.log(`💰 Precio total: S/. ${totalPrice.toFixed(2)}`);
 
   const comments = document.querySelector('.comment-area').value;
   const withFrame = document.querySelector('input[name="frame"]:checked').value !== 'sin-marco';
@@ -831,7 +752,6 @@ function addToCart() {
         uploadedImagesData = [];
         imagesGrid.innerHTML = '';
         uploadElements.classList.remove('has-images');
-        updateImageCounter();
       }
     } else if (failedProcesses > 0) {
       showNotification('Error al procesar las imágenes. Por favor intenta de nuevo.', 'error');
