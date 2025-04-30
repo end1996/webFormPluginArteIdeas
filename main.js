@@ -604,18 +604,16 @@ function getSelectedSizePrice() {
 function addToCart() {
   console.log("🚀 addToCart() fue llamada correctamente");
 
-  // Verificar si hay imágenes subidas
   if (uploadedImagesData.length === 0) {
     showNotification('Por favor, sube al menos una imagen primero.', 'error');
     console.log("⚠️ No hay imágenes subidas.");
     return;
   }
 
-  // Obtener los valores del formulario
   const quantity = document.querySelector('.quantity-field input').value;
   const isCustomSize = selectedOptionSize == 'custom';
 
-  let size, customWidth, customHeight;
+  let size, customWidth, customHeight, pricePerUnit;
   if (isCustomSize) {
     customWidth = document.getElementById('custom-size__width').value;
     customHeight = document.getElementById('custom-size__height').value;
@@ -624,9 +622,10 @@ function addToCart() {
       return;
     }
     size = `${customWidth}x${customHeight}`;
+    pricePerUnit = getSelectedSizePrice();
   } else {
     size = sizePicker.getValue();
-    pricePerUnit = getSelectedSizePrice(); // Obtener el precio del tamaño seleccionado
+    pricePerUnit = getSelectedSizePrice();
   }
 
   const comments = document.querySelector('.comment-area').value;
@@ -638,128 +637,60 @@ function addToCart() {
     frame = selectedFrameElement ? currentSelectedFrame : 'frame1';
   }
 
-  // Verificar si `ajax_object` está definido antes de usarlo
   if (typeof ajax_object === 'undefined') {
     console.error("❌ ERROR: ajax_object no está definido. Verifica que el script de WordPress está cargando correctamente.");
     showNotification("Error de configuración. Contacte con el administrador.", "error");
     return;
   }
 
-  // Mostrar indicador de carga
   showLoadingIndicator();
 
-  // Variables para seguimiento del proceso
-  let processedImages = 0;
-  let successfulProcesses = 0;
-  let failedProcesses = 0;
-  let cartUrl = '';
+  // --- NUEVO: Enviar todas las imágenes en un solo FormData ---
+  const formData = new FormData();
+  formData.append('action', 'process_print_image');
+  formData.append('nonce', ajax_object.nonce);
+  formData.append('quantity', quantity);
+  formData.append('size', size);
+  formData.append('price', pricePerUnit);
+  formData.append('is_custom_size', isCustomSize);
+  formData.append('custom_width', customWidth || 0);
+  formData.append('custom_height', customHeight || 0);
+  formData.append('comments', comments);
+  formData.append('frame', frame);
 
-  // Función para procesar una imagen específica
-  const processImage = async (index) => {
-    if (index >= uploadedImagesData.length) {
-      // Hemos terminado de procesar todas las imágenes
-      finishProcessing();
-      return;
-    }
+  // Agregar todas las imágenes como image_data[]
+  uploadedImagesData.forEach((imageData, idx) => {
+    formData.append('image_data[]', imageData.file, imageData.file.name);
+  });
 
-    const imageData = uploadedImagesData[index];
-    console.log(`📦 Procesando imagen ${index + 1}/${uploadedImagesData.length}...`);
-
-    try {
-      // Preparar los datos para enviar
-      const formData = new FormData();
-      formData.append('action', 'process_print_image');
-      formData.append('nonce', ajax_object.nonce);
-      formData.append('image_data', imageData.file);
-      formData.append('quantity', quantity);
-      formData.append('size', size);
-      formData.append('price', pricePerUnit); // Precio unitario
-      formData.append('is_custom_size', isCustomSize);
-      formData.append('custom_width', customWidth || 0);
-      formData.append('custom_height', customHeight || 0);
-      formData.append('comments', comments);
-      formData.append('frame', frame);
-      formData.append('image_index', index); // Añadir el índice para seguimiento
-
-      // Enviar al servidor
-      const response = await fetch(ajax_object.ajax_url, {
-        method: 'POST',
-        body: formData,
-        credentials: 'same-origin'
-      });
-
-      const data = await response.json();
-      processedImages++;
-
+  fetch(ajax_object.ajax_url, {
+    method: 'POST',
+    body: formData,
+    credentials: 'same-origin'
+  })
+    .then(response => response.json())
+    .then(data => {
+      hideLoadingIndicator();
       if (data.success) {
-        successfulProcesses++;
-        if (!cartUrl && data.data && data.data.cart_url) {
-          cartUrl = data.data.cart_url;
+        showNotification('¡Imágenes añadidas al carrito!', 'success');
+        if (data.data && data.data.cart_url) {
+          setTimeout(() => {
+            window.location.href = data.data.cart_url;
+          }, 1500);
         }
-        console.log(`✅ Imagen ${index + 1} procesada correctamente`);
-      } else {
-        failedProcesses++;
-        console.error(`❌ Error al procesar la imagen ${index + 1}:`, data.data);
-      }
-
-      // Actualizar el indicador de carga con el progreso
-      updateLoadingStatus(processedImages, uploadedImagesData.length);
-
-      // Procesar la siguiente imagen
-      await processImage(index + 1);
-
-    } catch (error) {
-      processedImages++;
-      failedProcesses++;
-      console.error(`❌ Error al procesar la imagen ${index + 1}:`, error);
-
-      // Continuar con la siguiente imagen a pesar del error
-      await processImage(index + 1);
-    }
-  };
-
-  // Función para mostrar el estado de carga actualizado
-  const updateLoadingStatus = (processed, total) => {
-    const loadingOverlay = document.querySelector('.loading-overlay p');
-    if (loadingOverlay) {
-      loadingOverlay.textContent = `Procesando imagen ${processed}/${total}...`;
-    }
-  };
-
-  // Función para finalizar el proceso
-  const finishProcessing = () => {
-    hideLoadingIndicator();
-
-    console.log(`✅ Procesadas ${processedImages}/${uploadedImagesData.length} imágenes. Éxitos: ${successfulProcesses}, Fallos: ${failedProcesses}`);
-
-    if (successfulProcesses > 0) {
-      if (failedProcesses > 0) {
-        showNotification(`Se añadieron ${successfulProcesses} imágenes al carrito, pero ${failedProcesses} no pudieron procesarse.`, 'warning');
-      } else {
-        showNotification(`¡${successfulProcesses} ${successfulProcesses > 1 ? 'imágenes añadidas' : 'imagen añadida'} al carrito!`, 'success');
-      }
-
-      // Redirigir al carrito después de un breve retraso
-      if (cartUrl) {
-        setTimeout(() => {
-          window.location.href = cartUrl;
-        }, 1500);
-      }
-
-      // Limpiar las imágenes procesadas exitosamente
-      if (successfulProcesses === uploadedImagesData.length) {
-        // Todas las imágenes se procesaron con éxito, limpiar todo
+        // Limpiar imágenes
         uploadedImagesData = [];
         imagesGrid.innerHTML = '';
         uploadElements.classList.remove('has-images');
+      } else {
+        showNotification(data.data || 'Error al procesar las imágenes.', 'error');
       }
-    } else if (failedProcesses > 0) {
+    })
+    .catch(error => {
+      hideLoadingIndicator();
       showNotification('Error al procesar las imágenes. Por favor intenta de nuevo.', 'error');
-    }
-  };
-
-  // Iniciar el procesamiento secuencial comenzando por la primera imagen
-  processImage(0);
+      console.error(error);
+    });
 }
 
 // Función para mostrar notificaciones

@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.0.8
+Version: 3.1.0
 Author: Enmanuel
 */
 
@@ -49,7 +49,7 @@ function web_form_shortcode()
     wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.1', true);
 
     // Cargar JS
-    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.6.4', true);
+    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.6.6', true);
 
     // Cargar Swiper JS desde CDN (depende de jQuery)
     wp_enqueue_script('swiper-js', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', array('jquery'), '11.0.0', true);
@@ -82,15 +82,12 @@ function process_print_image_to_cart()
 {
     check_ajax_referer('web_form_nonce', 'nonce');
 
-    // Verificamos si tenemos una imagen
+    // Verificamos si tenemos imágenes
     if (empty($_FILES['image_data'])) {
         error_log('Error: No se ha recibido ningún archivo de imagen');
         wp_send_json_error('No se ha subido ninguna imagen');
         return;
     }
-
-    // Información de debug
-    error_log('🔍 Procesando imagen: ' . print_r($_FILES['image_data'], true));
 
     $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 1;
     $size = isset($_POST['size']) ? sanitize_text_field($_POST['size']) : '';
@@ -100,11 +97,7 @@ function process_print_image_to_cart()
     $custom_width = isset($_POST['custom_width']) ? intval($_POST['custom_width']) : 0;
     $custom_height = isset($_POST['custom_height']) ? intval($_POST['custom_height']) : 0;
     $is_custom_size = isset($_POST['is_custom_size']) ? filter_var($_POST['is_custom_size'], FILTER_VALIDATE_BOOLEAN) : false;
-    $image_index = isset($_POST['image_index']) ? intval($_POST['image_index']) : 0;
 
-    error_log('📊 Datos recibidos: Tamaño=' . $size . ', Marco=' . $frame . ', Índice=' . $image_index);
-
-    // Obtener el ID del producto base
     $product_id = get_option('print_image_product_id', 159);
     if (!$product_id || !wc_get_product($product_id)) {
         error_log('Error: No se ha configurado un producto base para impresiones');
@@ -112,83 +105,80 @@ function process_print_image_to_cart()
         return;
     }
 
-    // Configuración para guardar la imagen
     $upload_dir = wp_upload_dir();
-    $image_url = '';
+    $images_data = [];
 
-    // Procesar el archivo subido
-    $file = $_FILES['image_data'];
+    // Soportar tanto un solo archivo como múltiples archivos
+    $files = $_FILES['image_data'];
+    $file_count = is_array($files['name']) ? count($files['name']) : 1;
 
-    // Verificar si hay errores en la subida
-    if ($file['error'] !== UPLOAD_ERR_OK) {
-        error_log('❌ Error en la subida: ' . $file['error']);
-        wp_send_json_error('Error al subir la imagen: ' . $file['error']);
+    for ($i = 0; $i < $file_count; $i++) {
+        $file = [
+            'name' => is_array($files['name']) ? $files['name'][$i] : $files['name'],
+            'type' => is_array($files['type']) ? $files['type'][$i] : $files['type'],
+            'tmp_name' => is_array($files['tmp_name']) ? $files['tmp_name'][$i] : $files['tmp_name'],
+            'error' => is_array($files['error']) ? $files['error'][$i] : $files['error'],
+            'size' => is_array($files['size']) ? $files['size'][$i] : $files['size'],
+        ];
+
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            error_log('❌ Error en la subida: ' . $file['error']);
+            continue;
+        }
+
+        $allowed_types = array('image/jpeg', 'image/png', 'image/gif', 'image/webp');
+        $file_info = wp_check_filetype_and_ext($file['tmp_name'], $file['name']);
+        $file_type = $file_info['type'] ? $file_info['type'] : $file['type'];
+
+        if (!in_array($file_type, $allowed_types)) {
+            error_log('❌ Tipo de archivo no permitido: ' . $file_type);
+            continue;
+        }
+
+        $filename = 'print_image_' . time() . '_' . $i . '_' . sanitize_file_name($file['name']);
+        $filepath = $upload_dir['path'] . '/' . $filename;
+
+        if (move_uploaded_file($file['tmp_name'], $filepath)) {
+            $image_url = $upload_dir['url'] . '/' . $filename;
+            $images_data[] = [
+                'id' => $filename,
+                'image_url' => esc_url($image_url),
+                'size' => $is_custom_size ? "{$custom_width}x{$custom_height}" : $size,
+                'is_custom_size' => $is_custom_size,
+                'frame' => $frame,
+                'comments' => $comments,
+            ];
+        } else {
+            error_log('❌ Error al mover el archivo subido de ' . $file['tmp_name'] . ' a ' . $filepath);
+        }
+    }
+
+    if (empty($images_data)) {
+        wp_send_json_error('No se pudieron procesar las imágenes.');
         return;
     }
 
-    // Verificar tipo de archivo (solo permitir imágenes)
-    $allowed_types = array('image/jpeg', 'image/png', 'image/gif', 'image/webp');
-
-    // Obtener el tipo MIME real del archivo
-    $file_info = wp_check_filetype_and_ext($file['tmp_name'], $file['name']);
-    $file_type = $file_info['type'] ? $file_info['type'] : $file['type'];
-
-    error_log('🖼️ Tipo de archivo: ' . $file_type);
-
-    if (!in_array($file_type, $allowed_types)) {
-        error_log('❌ Tipo de archivo no permitido: ' . $file_type);
-        wp_send_json_error('Solo se permiten imágenes (JPEG, PNG, GIF, WEBP)');
-        return;
-    }
-
-    // Generar nombre único para el archivo
-    $filename = 'print_image_' . time() . '_' . $image_index . '_' . sanitize_file_name($file['name']);
-    $filepath = $upload_dir['path'] . '/' . $filename;
-
-    // Mover el archivo subido a la carpeta de uploads
-    if (move_uploaded_file($file['tmp_name'], $filepath)) {
-        // Obtener URL de la imagen
-        $image_url = $upload_dir['url'] . '/' . $filename;
-        error_log('✅ Imagen guardada correctamente en: ' . $image_url);
-    } else {
-        error_log('❌ Error al mover el archivo subido de ' . $file['tmp_name'] . ' a ' . $filepath);
-        wp_send_json_error('Error al guardar la imagen en el servidor');
-        return;
-    }
-
-    // Guardar la imagen en los metadatos del carrito
+    // Guardar todas las imágenes en el array print_image_data
     $cart_item_data = array(
-        'print_image_data' => array(
-            'id'=> $filename, // ID único para la imagen
-            'image_url' => esc_url($image_url),
-            'size' => $is_custom_size ? "{$custom_width}x{$custom_height}" : $size,
-            'price' => $price,
-            'is_custom_size' => $is_custom_size,
-            'frame' => $frame,
-            'comments' => $comments,
-            'image_index' => $image_index // Guarda el índice para referencia
-        ),
-        'unique_key' => md5(microtime() . rand() . $image_index) // Asegura que cada item sea único
+        'print_image_data' => $images_data,
+        'size' => $is_custom_size ? "{$custom_width}x{$custom_height}" : $size,
+        'price' => $price,
+        'is_custom_size' => $is_custom_size,
+        'frame' => $frame,
+        'comments' => $comments,
+        'unique_key' => md5(microtime() . rand())
     );
 
-    error_log('🛒 Datos del carrito para imagen ' . $image_index . ': ' . print_r($cart_item_data, true));
-
-    // Añadir al carrito
     $cart_item_key = WC()->cart->add_to_cart($product_id, $quantity, 0, array(), $cart_item_data);
 
-
     if ($cart_item_key) {
-        error_log('✅ Producto ' . $image_index . ' añadido al carrito correctamente');
         wp_send_json_success(array(
             'message' => 'Producto añadido al carrito',
-            'cart_url' => wc_get_cart_url(),
-            'image_index' => $image_index
+            'cart_url' => wc_get_cart_url()
         ));
     } else {
-        // Obtener errores de WooCommerce y formatearlos correctamente
         $error_messages = array();
         $wc_errors = wc_get_notices('error');
-
         foreach ($wc_errors as $error) {
             if (is_array($error) && isset($error['notice'])) {
                 $error_messages[] = $error['notice'];
@@ -196,17 +186,11 @@ function process_print_image_to_cart()
                 $error_messages[] = $error;
             }
         }
-
-        // Limpiar los errores para no mostrarlos duplicados después
         wc_clear_notices();
-
         $error_text = !empty($error_messages)
             ? implode(', ', $error_messages)
             : 'Error desconocido al añadir al carrito';
-
-        error_log('❌ Errores reales del carrito: ' . $error_text);
         wp_send_json_error($error_text);
-        return;
     }
 
     wp_die();
@@ -219,29 +203,27 @@ add_action('wp_ajax_nopriv_process_print_image', 'process_print_image_to_cart');
 
 function display_cart_product($product_images, $cart_item, $cart_item_key)
 {
-    // Verifica si el artículo tiene una imagen personalizada
-    if (isset($cart_item['print_image_data']['image_url'])) {
-        $image_url = $cart_item['print_image_data']['image_url'];
-
-        return [
-            (object) [
+    if (isset($cart_item['print_image_data']) && is_array($cart_item['print_image_data'])) {
+        $images = [];
+        foreach ($cart_item['print_image_data'] as $img) {
+            $images[] = (object) [
                 'id' => 0,
-                'src' => $image_url,  // Imagen personalizada
-                'thumbnail' => $image_url,  // Miniatura personalizada
+                'src' => $img['image_url'],
+                'thumbnail' => $img['image_url'],
                 'srcset' => '',
                 'sizes' => '',
                 'name' => 'Imagen personalizada del producto',
                 'alt' => 'Imagen personalizada del producto',
-            ]
-        ];
+            ];
+        }
+        return $images;
     }
-
-    // Si no hay imagen personalizada, devuelve la imagen original del producto
     return $product_images;
 }
-
 add_filter('woocommerce_store_api_cart_item_images', 'display_cart_product', 10, 3);
-function reemplazar_thumbnail_por_print_image($thumbnail, $item) {
+
+function reemplazar_thumbnail_por_print_image($thumbnail, $item)
+{
     // Si $item es un integer, se asume que es el ID del item, por lo que cargamos el objeto
     if (is_int($item)) {
         error_log('ℹ️ Recibido ID de item: ' . $item);
@@ -268,7 +250,8 @@ add_filter('woocommerce_admin_order_item_thumbnail', 'reemplazar_thumbnail_por_p
 
 
 // Actualizar el precio del producto en el carrito
-function update_cart_item_price($cart) {
+function update_cart_item_price($cart)
+{
     if (did_action('woocommerce_before_calculate_totals') >= 2 || is_admin() && !defined('DOING_AJAX')) {
         return;
     }
@@ -284,7 +267,6 @@ function update_cart_item_price($cart) {
         "30X45" => 35.00,
         "30X60" => 45.00,
     ];
-    // Descuentos por cantidad mayor a 4
     $bulk_size_prices = [
         "10X15" => 3.00,
         "13X18" => 5.00,
@@ -295,7 +277,6 @@ function update_cart_item_price($cart) {
         "30X45" => 30.00,
         "30X60" => 40.00,
     ];
-    // Descuentos por cantidad mayor a 12
     $bulk_size_prices_12 = [
         "10X15" => 2.50,
         "13X18" => 4.00,
@@ -306,15 +287,13 @@ function update_cart_item_price($cart) {
         "30X45" => 25.00,
         "30X60" => 35.00,
     ];
-    // Recorrer los artículos del carrito
     foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
         $product = $cart_item['data'];
         $quantity = $cart_item['quantity'];
 
-        // Obtener el tamaño del producto (asumiendo que se guarda en un campo personalizado)
-        $size = isset($cart_item['print_image_data']['size']) ? $cart_item['print_image_data']['size'] : '';
+        // CORREGIDO: Obtener el tamaño del producto
+        $size = isset($cart_item['size']) ? $cart_item['size'] : '';
 
-        // Aplicar precio según tamaño y cantidad
         if (!empty($size)) {
             if ($quantity >= 12 && isset($bulk_size_prices_12[$size])) {
                 $precio_final = $bulk_size_prices_12[$size];
@@ -324,7 +303,6 @@ function update_cart_item_price($cart) {
                 $precio_final = $size_prices[$size];
             }
 
-            // Asignar el precio final al producto
             if (isset($precio_final)) {
                 $product->set_price($precio_final);
             }
@@ -333,34 +311,43 @@ function update_cart_item_price($cart) {
 }
 add_action('woocommerce_before_calculate_totals', 'update_cart_item_price', 20, 1);
 
-function display_print_image_cart_item_data($item_data, $cart_item)
-{
+function display_print_image_cart_item_data(
+    $item_data,
+    $cart_item
+) {
     if (isset($cart_item['print_image_data'])) {
-        $print_data = $cart_item['print_image_data'];
-
-        // Mostrar el tamaño
-        $item_data[] = array(
-            'key' => 'Tamaño',
-            'value' => $print_data['size']
-        );
-
-        // Mostrar el marco (si no es "sin-marco")
-        if ($print_data['frame'] !== 'sin-marco') {
-            $item_data[] = array(
-                'key' => 'Marco',
-                'value' => $print_data['frame']
-            );
+        $images = $cart_item['print_image_data'];
+        // Si es un solo string (caso antiguo), conviértelo en array
+        if (!is_array($images) || (isset($images['image_url']) && is_string($images['image_url']))) {
+            $images = [$images];
         }
-
-        // Mostrar los comentarios (si existen)
-        if (!empty($print_data['comments'])) {
-            $item_data[] = array(
-                'key' => 'Comentarios',
-                'value' => $print_data['comments']
-            );
+        // Solo mostrar imágenes si es array de arrays
+        if (is_array($images)) {
+            // Mostrar miniaturas de todas las imágenes
+            $thumbnails = '';
+            foreach ($images as $img) {
+                if (is_array($img) && !empty($img['image_url'])) {
+                    $thumbnails .= '<img src="' . esc_url($img['image_url']) . '" alt="Imagen subida" class="cart-image-preview" style="max-width:60px;max-height:60px;margin-right:5px;border:1px solid #ccc;border-radius:4px;" />';
+                }
+            }
+            if (!empty($thumbnails)) {
+                $item_data[] = array(
+                    'key' => 'Imágenes',
+                    'value' => $thumbnails
+                );
+            }
+        }
+        // Otros datos como tamaño, marco, comentarios...
+        if (isset($cart_item['size'])) {
+            $item_data[] = array('key' => 'Tamaño', 'value' => $cart_item['size']);
+        }
+        if (isset($cart_item['frame']) && $cart_item['frame'] !== 'sin-marco') {
+            $item_data[] = array('key' => 'Marco', 'value' => $cart_item['frame']);
+        }
+        if (!empty($cart_item['comments'])) {
+            $item_data[] = array('key' => 'Comentarios', 'value' => $cart_item['comments']);
         }
     }
-
     return $item_data;
 }
 add_filter('woocommerce_get_item_data', 'display_print_image_cart_item_data', 10, 2);
@@ -368,24 +355,17 @@ add_filter('woocommerce_get_item_data', 'display_print_image_cart_item_data', 10
 // Guardar datos personalizados en el pedido
 function save_print_image_order_item_meta($item, $cart_item_key, $values, $order)
 {
-    if (isset($values['print_image_data'])) {
-        $print_data = $values['print_image_data'];
-
-        $item->add_meta_data('Tamaño', $print_data['size']);
-
-        if ($print_data['frame'] !== 'sin-marco') {
-            $item->add_meta_data('Marco', $print_data['frame']);
+    if (isset($values['print_image_data']) && is_array($values['print_image_data'])) {
+        foreach ($values['print_image_data'] as $img) {
+            $item->add_meta_data('Imagen', $img['image_url']);
         }
-
-        if (!empty($print_data['comments'])) {
-            $item->add_meta_data('Comentarios', $print_data['comments']);
+        $item->add_meta_data('Tamaño', $values['size']);
+        if ($values['frame'] !== 'sin-marco') {
+            $item->add_meta_data('Marco', $values['frame']);
         }
-
-        // Guardar la URL de la imagen para referencia
-        $item->add_meta_data('URL', $print_data['image_url'], true);
-
-        // Guardar el ID único de la imagen
-        $item->add_meta_data('ID', $print_data['id'], true);
+        if (!empty($values['comments'])) {
+            $item->add_meta_data('Comentarios', $values['comments']);
+        }
     }
 }
 add_action('woocommerce_checkout_create_order_line_item', 'save_print_image_order_item_meta', 10, 4);
