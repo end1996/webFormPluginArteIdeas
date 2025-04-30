@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.1.0
+Version: 3.1.1
 Author: Enmanuel
 */
 
@@ -356,11 +356,23 @@ add_filter('woocommerce_get_item_data', 'display_print_image_cart_item_data', 10
 function save_print_image_order_item_meta($item, $cart_item_key, $values, $order)
 {
     if (isset($values['print_image_data']) && is_array($values['print_image_data'])) {
+        $image_urls = [];
         foreach ($values['print_image_data'] as $img) {
-            $item->add_meta_data('Imagen', $img['image_url']);
+            if (isset($img['image_url'])) {
+                $image_urls[] = esc_url($img['image_url']);
+            }
         }
-        $item->add_meta_data('Tamaño', $values['size']);
-        if ($values['frame'] !== 'sin-marco') {
+
+        // Guardar todas las URLs de imágenes como un solo meta dato
+        if (!empty($image_urls)) {
+            $item->add_meta_data('Imágenes', implode(', ', $image_urls));
+        }
+
+        // Guardar otros datos relacionados
+        if (isset($values['size'])) {
+            $item->add_meta_data('Tamaño', $values['size']);
+        }
+        if (isset($values['frame']) && $values['frame'] !== 'sin-marco') {
             $item->add_meta_data('Marco', $values['frame']);
         }
         if (!empty($values['comments'])) {
@@ -436,3 +448,37 @@ function print_image_settings_page_content()
     </div>
     <?php
 }
+
+// Mostrar miniaturas en el detalle del pedido en el admin
+add_filter('woocommerce_order_item_display_meta_value', function($value, $meta, $item) {
+    static $image_group = ''; // Variable estática para acumular imágenes
+    static $is_first_image = true; // Bandera para mostrar "Imágenes:" solo una vez
+
+    if ($meta->key === 'Imágenes') {
+        $image_urls = explode(', ', $meta->value); // Separar las URLs de las imágenes
+        $thumbnails = '';
+
+        foreach ($image_urls as $img_url) {
+            $img_url = esc_url($img_url);
+            $thumbnails .= '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">'
+                . '<img src="' . $img_url . '" alt="Imagen subida" class="order-image-thumbnail" style="max-width:60px;max-height:60px;border:1px solid #ccc;border-radius:4px;" />'
+                . '<a href="' . $img_url . '" target="_blank" style="font-size:12px;word-break:break-all;text-align:center;display:inline-block;">Descargar / Ver imagen</a>'
+                . '</div>';
+        }
+
+        // Acumular las imágenes en el grupo
+        $image_group .= $thumbnails;
+
+        // Si es la primera imagen, agregar el encabezado "Imágenes:"
+        if ($is_first_image) {
+            $is_first_image = false;
+            return $image_group;
+        }
+
+        // Retornar vacío para evitar duplicar encabezados
+        return '';
+    }
+
+    // Si no es una imagen, retornar el valor original
+    return $value;
+}, 10, 3);
