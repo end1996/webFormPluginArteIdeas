@@ -450,20 +450,25 @@ function print_image_settings_page_content()
 }
 
 // Mostrar miniaturas en el detalle del pedido en el admin
-add_filter('woocommerce_order_item_display_meta_value', function($value, $meta, $item) {
+add_filter('woocommerce_order_item_display_meta_value', function ($value, $meta, $item) {
     static $image_group = ''; // Variable estática para acumular imágenes
     static $is_first_image = true; // Bandera para mostrar "Imágenes:" solo una vez
 
     if ($meta->key === 'Imágenes') {
+        // Verificar si el valor es un string y no un array
         $image_urls = explode(', ', $meta->value); // Separar las URLs de las imágenes
         $thumbnails = '';
 
         foreach ($image_urls as $img_url) {
             $img_url = esc_url($img_url);
             $thumbnails .= '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">'
-                . '<img src="' . $img_url . '" alt="Imagen subida" class="order-image-thumbnail" style="max-width:60px;max-height:60px;border:1px solid #ccc;border-radius:4px;" />'
-                . '<a href="' . $img_url . '" target="_blank" style="font-size:12px;word-break:break-all;text-align:center;display:inline-block;">Descargar / Ver imagen</a>'
-                . '</div>';
+                . '<img src="' . $img_url . '" alt="Imagen subida" class="order-image-thumbnail" style="max-width:60px;max-height:60px;border:1px solid #ccc;border-radius:4px;" />';
+            // Mostrar el enlace de descarga solo si está en el área de administración
+            if (is_admin()) {
+                $thumbnails .= '<a href="' . $img_url . '" target="_blank" style="font-size:12px;word-break:break-all;text-align:center;display:inline-block;">Descargar / Ver imagen</a>';
+            }
+
+            $thumbnails .= '</div>';
         }
 
         // Acumular las imágenes en el grupo
