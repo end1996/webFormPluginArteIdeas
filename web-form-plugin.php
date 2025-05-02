@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.1.2
+Version: 3.1.3
 Author: Enmanuel
 */
 
@@ -46,10 +46,10 @@ function web_form_shortcode()
     wp_enqueue_style('viewer-css', 'https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.7/viewer.css', array(), '1.11.7');
 
     // Cargar IOS-Picker
-    wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.1', true);
+    wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.2', true);
 
     // Cargar JS
-    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.6.6', true);
+    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.6.7', true);
 
     // Cargar Swiper JS desde CDN (depende de jQuery)
     wp_enqueue_script('swiper-js', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', array('jquery'), '11.0.0', true);
@@ -291,20 +291,26 @@ function update_cart_item_price($cart)
         $product = $cart_item['data'];
         $quantity = $cart_item['quantity'];
 
-        // CORREGIDO: Obtener el tamaño del producto
-        $size = isset($cart_item['size']) ? $cart_item['size'] : '';
+        $is_custom_size = isset($cart_item['is_custom_size']) ? $cart_item['is_custom_size'] : false;
 
-        if (!empty($size)) {
-            if ($quantity >= 12 && isset($bulk_size_prices_12[$size])) {
-                $precio_final = $bulk_size_prices_12[$size];
-            } elseif ($quantity >= 4 && isset($bulk_size_prices[$size])) {
-                $precio_final = $bulk_size_prices[$size];
-            } elseif (isset($size_prices[$size])) {
-                $precio_final = $size_prices[$size];
-            }
-
-            if (isset($precio_final)) {
-                $product->set_price($precio_final);
+        if ($is_custom_size && isset($cart_item['price'])) {
+            // Si es tamaño personalizado, usar el precio enviado
+            $precio_final = floatval($cart_item['price']);
+            $product->set_price($precio_final);
+        } else {
+            // Lógica existente para tamaños estándar
+            $size = isset($cart_item['size']) ? $cart_item['size'] : '';
+            if (!empty($size)) {
+                if ($quantity >= 12 && isset($bulk_size_prices_12[$size])) {
+                    $precio_final = $bulk_size_prices_12[$size];
+                } elseif ($quantity >= 4 && isset($bulk_size_prices[$size])) {
+                    $precio_final = $bulk_size_prices[$size];
+                } elseif (isset($size_prices[$size])) {
+                    $precio_final = $size_prices[$size];
+                }
+                if (isset($precio_final)) {
+                    $product->set_price($precio_final);
+                }
             }
         }
     }
