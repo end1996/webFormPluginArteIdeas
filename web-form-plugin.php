@@ -98,7 +98,7 @@ function process_print_image_to_cart()
     $custom_height = isset($_POST['custom_height']) ? intval($_POST['custom_height']) : 0;
     $is_custom_size = isset($_POST['is_custom_size']) ? filter_var($_POST['is_custom_size'], FILTER_VALIDATE_BOOLEAN) : false;
 
-    $product_id = get_option('print_image_product_id', 159);
+    $product_id = get_option('print_image_product_id', 439);
     if (!$product_id || !wc_get_product($product_id)) {
         error_log('Error: No se ha configurado un producto base para impresiones');
         wp_send_json_error('No se ha configurado un producto base para impresiones');

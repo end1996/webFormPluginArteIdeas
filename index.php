@@ -35,7 +35,7 @@
             </div>
         </div>
 
-        <!-- Sección de tamaños (modificada) -->
+        <!-- Sección de tamaños  -->
         <div class="section">
             <div class="section-title">
                 <label>Tamaño:</label>
