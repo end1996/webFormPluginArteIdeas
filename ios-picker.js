@@ -274,7 +274,7 @@
         }
 
         setupEvents() {
-            this.element.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
+            this.element.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
             this.element.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
             this.element.addEventListener('touchend', this.handleTouchEnd.bind(this));
             this.element.addEventListener('mousedown', this.handleMouseDown.bind(this));

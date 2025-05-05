@@ -64,64 +64,62 @@
 
     <div class="section">
         <div class="section-title">
-            Comentarios adicionales para tu diseño
+            Indicaciones de impresión
         </div>
-
         <textarea class="comment-area" placeholder=" Escribe aquí tus comentarios..." maxlength="255"></textarea>
     </div>
 
     <div class="section">
         <div class="section-title">
             <div class="radio-group">
-                <label class="radio-label">
-                    <input type="radio" name="frame" class="radio-input" checked onclick="toggleFrameOptions(false)">
-                    <label class="radio-label">Sin marco</label>
-                </label>
-                <label class="radio-label">
-                    <input type="radio" name="frame" class="radio-input" onclick="toggleFrameOptions(true)">
-                    <label class="radio-label">Con marco</label>
-                </label>
+                <input type="radio" name="frame" class="radio-input" checked onclick="toggleFrameOptions(false)">
+                <label class="radio-label">Sin marco</label>
+                <input type="radio" name="frame" class="radio-input" onclick="toggleFrameOptions(true)">
+                <label class="radio-label">Con marco</label>
             </div>
-        </div>
-        <div id="frame-ios-picker-wrapper" class="frames container" style="display: none">
-            <div class="swiper mySwiper">
-                <div class="swiper-wrapper" id="frame-picker">
-                    <div class="swiper-slide" data-value="frame1">
-                        <img src="<?php echo get_asset_url('marco1.png'); ?>" alt="marco1">
-                        <button class="zoom-icon-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                              <path fill="#f0710a" d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM184 296c0 13.3 10.7 24 24 24s24-10.7 24-24l0-64 64 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-64 0 0-64c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 64-64 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l64 0 0 64z"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="swiper-slide" data-value="frame2">
-                        <img src="<?php echo get_asset_url('marco2.png'); ?>" alt="marco2">
-                        <button class="zoom-icon-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                              <path fill="#f0710a" d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM184 296c0 13.3 10.7 24 24 24s24-10.7 24-24l0-64 64 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-64 0 0-64c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 64-64 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l64 0 0 64z"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="swiper-slide" data-value="frame3">
-                        <img src="<?php echo get_asset_url('marco3.png'); ?>" alt="marco3">
-                        <button class="zoom-icon-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                              <path fill="#f0710a" d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM184 296c0 13.3 10.7 24 24 24s24-10.7 24-24l0-64 64 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-64 0 0-64c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 64-64 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l64 0 0 64z"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="swiper-slide" data-value="frame4">
-                        <img src="<?php echo get_asset_url('marco4.png'); ?>" alt="marco4">
-                        <button class="zoom-icon-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                              <path fill="#f0710a" d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM184 296c0 13.3 10.7 24 24 24s24-10.7 24-24l0-64 64 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-64 0 0-64c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 64-64 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l64 0 0 64z"/>
-                            </svg>
-                        </button>
+            <div id="frame-ios-picker-wrapper" class="frames container" style="display: none">
+                <div class="swiper mySwiper">
+                    <div class="swiper-wrapper" id="frame-picker">
+                        <div class="swiper-slide" data-value="frame1">
+                            <img src="<?php echo get_asset_url('marco1.png'); ?>" alt="marco1">
+                            <button class="zoom-icon-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                    <path fill="#f0710a"
+                                        d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM184 296c0 13.3 10.7 24 24 24s24-10.7 24-24l0-64 64 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-64 0 0-64c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 64-64 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l64 0 0 64z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="swiper-slide" data-value="frame2">
+                            <img src="<?php echo get_asset_url('marco2.png'); ?>" alt="marco2">
+                            <button class="zoom-icon-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                    <path fill="#f0710a"
+                                        d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM184 296c0 13.3 10.7 24 24 24s24-10.7 24-24l0-64 64 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-64 0 0-64c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 64-64 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l64 0 0 64z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="swiper-slide" data-value="frame3">
+                            <img src="<?php echo get_asset_url('marco3.png'); ?>" alt="marco3">
+                            <button class="zoom-icon-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                    <path fill="#f0710a"
+                                        d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM184 296c0 13.3 10.7 24 24 24s24-10.7 24-24l0-64 64 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-64 0 0-64c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 64-64 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l64 0 0 64z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="swiper-slide" data-value="frame4">
+                            <img src="<?php echo get_asset_url('marco4.png'); ?>" alt="marco4">
+                            <button class="zoom-icon-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                    <path fill="#f0710a"
+                                        d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM184 296c0 13.3 10.7 24 24 24s24-10.7 24-24l0-64 64 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-64 0 0-64c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 64-64 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l64 0 0 64z" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
     </div>
     <div class="price-estimate-section" id="price-estimate" style="display: none;">
         <div class="section-title">
