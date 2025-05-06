@@ -174,7 +174,7 @@ function process_print_image_to_cart()
     if ($cart_item_key) {
         wp_send_json_success(array(
             'message' => 'Producto añadido al carrito',
-            'cart_url' => wc_get_cart_url()
+            
         ));
     } else {
         $error_messages = array();
