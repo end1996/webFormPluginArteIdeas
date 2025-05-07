@@ -261,12 +261,16 @@ function initializeViewerForSwiper() {
 
   slides.forEach((slide) => {
     const img = slide.querySelector("img"); // Busca la imagen dentro del slide
-    const btn = slide.querySelector(".zoom-icon-btn"); //Busca el botón con clase .zoom-icon-btn dentro del slide
+    const btn = slide.querySelector(".zoom-icon-btn"); // Busca el botón con clase .zoom-icon-btn dentro del slide
 
     if (btn && img) {
       let viewerInstance = null;
-      // Agrega un evento de clic al botón de zoom
-      btn.addEventListener("click", function (event) {
+
+      // Elimina cualquier listener previo antes de agregar uno nuevo
+      btn.removeEventListener("click", btn._viewerClickHandler);
+
+      // Define el handler como una propiedad del botón para evitar duplicados
+      btn._viewerClickHandler = function (event) {
         event.stopPropagation();
 
         // Evita crear múltiples viewers
@@ -287,13 +291,11 @@ function initializeViewerForSwiper() {
           title: false,
           toolbar: {
             zoomIn: {
-              // Habilitar zoom in
               show: true,
               title: "Zoom In",
               size: "large",
             },
             zoomOut: {
-              // Habilitar zoom out
               show: true,
               title: "Zoom Out",
               size: "large",
@@ -317,9 +319,13 @@ function initializeViewerForSwiper() {
             viewerInstance = null;
           },
         });
+
         // Muestra el visor
         viewerInstance.show();
-      });
+      };
+
+      // Agrega el listener actualizado
+      btn.addEventListener("click", btn._viewerClickHandler);
     }
   });
 }

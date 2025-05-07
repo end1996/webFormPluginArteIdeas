@@ -37,7 +37,7 @@ function web_form_shortcode()
     $picker_path = plugin_dir_url(__FILE__) . 'ios-picker.js';
 
     // Cargar CSS
-    wp_enqueue_style('web-form-styles', $css_path, array(), '5.2.2');
+    wp_enqueue_style('web-form-styles', $css_path, array(), '5.2.3');
 
     // Cargar Swiper CSS desde CDN
     wp_enqueue_style('swiper-css', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css', array(), '11.0.0');
@@ -49,7 +49,7 @@ function web_form_shortcode()
     wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.6', true);
 
     // Cargar JS
-    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.6.9', true);
+    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.7', true);
 
     // Cargar Swiper JS desde CDN (depende de jQuery)
     wp_enqueue_script('swiper-js', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', array('jquery'), '11.0.0', true);
