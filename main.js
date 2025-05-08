@@ -750,15 +750,14 @@ function addToCart() {
       hideLoadingIndicator();
       if (data.success) {
         showNotification("¡Imágenes añadidas al carrito!", "success");
-        if (data.data && data.data.cart_url) {
-          setTimeout(() => {
-            window.location.href = data.data.cart_url;
-          }, 1500);
+        
+        // Actualizar el fragmento del carrito
+        if (typeof wc_cart_fragments_params !== 'undefined') {
+          jQuery(document.body).trigger('wc_fragment_refresh');
         }
-        // Limpiar imágenes
-        uploadedImagesData = [];
-        imagesGrid.innerHTML = "";
-        uploadElements.classList.remove("has-images");
+        
+        // Limpiar todos los campos del formulario
+        resetForm();
       } else {
         showNotification(
           data.data || "Error al procesar las imágenes.",
@@ -774,6 +773,52 @@ function addToCart() {
       );
       console.error(error);
     });
+}
+
+// Función para resetear el formulario
+function resetForm() {
+  // Limpiar imágenes
+  uploadedImagesData = [];
+  imagesGrid.innerHTML = "";
+  uploadElements.classList.remove("has-images");
+
+  // Resetear cantidad
+  const quantityInput = document.querySelector(".quantity-field input");
+  if (quantityInput) {
+    quantityInput.value = "1";
+  }
+
+  // Resetear comentarios
+  const commentArea = document.querySelector(".comment-area");
+  if (commentArea) {
+    commentArea.value = "";
+  }
+
+  // Resetear tamaño personalizado
+  const customWidthInput = document.getElementById("custom-size__width");
+  const customHeightInput = document.getElementById("custom-size__height");
+  if (customWidthInput) customWidthInput.value = "10";
+  if (customHeightInput) customHeightInput.value = "15";
+
+  // Resetear selección de marco
+  const frameInputs = document.querySelectorAll('input[name="frame"]');
+  if (frameInputs.length > 0) {
+    frameInputs[0].checked = true; // Seleccionar el primer radio button
+  }
+
+  // Resetear el picker de tamaño
+  if (sizePicker) {
+    sizePicker.destroy();
+    initializeSizePicker();
+  }
+
+  // Resetear el precio total
+  document.getElementById("total-price-button").innerText = "S/. 0.00";
+
+  // Resetear la selección de tipo de tamaño
+  if (selectedOptionSize === "custom") {
+    toggleSizeOptions("standard");
+  }
 }
 
 // Función para mostrar notificaciones
