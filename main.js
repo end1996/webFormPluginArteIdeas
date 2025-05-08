@@ -756,6 +756,13 @@ function addToCart() {
           jQuery(document.body).trigger('wc_fragment_refresh');
         }
         
+        // Abrir la barra lateral del carrito de Elementor
+        if (typeof elementorFrontend !== 'undefined' && elementorFrontend.hooks) {
+          elementorFrontend.hooks.doAction('frontend/element_ready/menu-cart.default', jQuery('.elementor-menu-cart--cart-type-side-cart'));
+          jQuery('.elementor-menu-cart__toggle').trigger('click');
+        }
+        
+        
         // Limpiar todos los campos del formulario
         resetForm();
       } else {
