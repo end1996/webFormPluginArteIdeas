@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.1.4
+Version: 3.1.5
 Author: Enmanuel
 */
 
@@ -37,7 +37,7 @@ function web_form_shortcode()
     $picker_path = plugin_dir_url(__FILE__) . 'ios-picker.js';
 
     // Cargar CSS
-    wp_enqueue_style('web-form-styles', $css_path, array(), '5.2.1');
+    wp_enqueue_style('web-form-styles', $css_path, array(), '5.2.2');
 
     // Cargar Swiper CSS desde CDN
     wp_enqueue_style('swiper-css', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css', array(), '11.0.0');
@@ -49,7 +49,7 @@ function web_form_shortcode()
     wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.5', true);
 
     // Cargar JS
-    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.6.8', true);
+    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.6.9', true);
 
     // Cargar Swiper JS desde CDN (depende de jQuery)
     wp_enqueue_script('swiper-js', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', array('jquery'), '11.0.0', true);
@@ -68,6 +68,15 @@ function web_form_shortcode()
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('web_form_nonce')
     ));
+
+    // Asegurarse de que WooCommerce cargue sus fragmentos
+    if (function_exists('wc_enqueue_js')) {
+        wc_enqueue_js('
+            jQuery(document.body).on("wc_fragment_refresh", function() {
+                jQuery(document.body).trigger("wc_fragments_refreshed");
+            });
+        ');
+    }
 
     // Incluir el archivo HTML
     ob_start(); // Inicia el almacenamiento en búfer de salida
@@ -174,7 +183,7 @@ function process_print_image_to_cart()
     if ($cart_item_key) {
         wp_send_json_success(array(
             'message' => 'Producto añadido al carrito',
-            
+            'cart_url' => wc_get_cart_url()
         ));
     } else {
         $error_messages = array();
@@ -218,7 +227,7 @@ function display_cart_product($product_images, $cart_item, $cart_item_key)
         }
         return $images;
     }
-    return $product_images;
+    return []; // Retornar array vacío en lugar de $product_images
 }
 add_filter('woocommerce_store_api_cart_item_images', 'display_cart_product', 10, 3);
 
