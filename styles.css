@@ -593,3 +593,9 @@ input.error, textarea.error {
   padding: 0;
   top: 10px;
 }
+/* Barra latertal del carrito */
+
+.elementor-menu-cart__container[aria-hidden="false"] {
+  opacity: 1;
+  transform: translateX(0);
+}

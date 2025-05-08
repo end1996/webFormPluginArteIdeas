@@ -755,14 +755,21 @@ function addToCart() {
         if (typeof wc_cart_fragments_params !== 'undefined') {
           jQuery(document.body).trigger('wc_fragment_refresh');
         }
-        
-        // Abrir la barra lateral del carrito de Elementor
-        if (typeof elementorFrontend !== 'undefined' && elementorFrontend.hooks) {
-          elementorFrontend.hooks.doAction('frontend/element_ready/menu-cart.default', jQuery('.elementor-menu-cart--cart-type-side-cart'));
-          jQuery('.elementor-menu-cart__toggle').trigger('click');
+     
+         // Mostrar automáticamente la barra lateral del carrito de Elementor
+       setTimeout(function() {
+        // Buscar y hacer clic en el botón que abre el carrito lateral
+        const cartToggleBtn = document.querySelector('.elementor-menu-cart__toggle_button');
+        if (cartToggleBtn) {
+          cartToggleBtn.click();
+        } else {
+          // Alternativa: usar el evento personalizado de Elementor para abrir el carrito lateral
+          jQuery(document.body).trigger('wc_fragments_refreshed');
+          jQuery(document.body).trigger('elementor/popup/show');
         }
-        
-        
+      }, 300); // Pequeño retraso para asegurar que los fragmentos se actualizaron
+
+
         // Limpiar todos los campos del formulario
         resetForm();
       } else {
