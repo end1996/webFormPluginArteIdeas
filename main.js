@@ -767,7 +767,7 @@ function addToCart() {
           jQuery(document.body).trigger('wc_fragments_refreshed');
           jQuery(document.body).trigger('elementor/popup/show');
         }
-      }, 300); // Pequeño retraso para asegurar que los fragmentos se actualizaron
+      }, 2500); // Pequeño retraso para asegurar que los fragmentos se actualizaron
 
 
         // Limpiar todos los campos del formulario
@@ -848,8 +848,8 @@ function showNotification(message, type = "info") {
   setTimeout(() => notification.classList.add("show"), 10);
   setTimeout(() => {
     notification.classList.remove("show");
-    setTimeout(() => document.body.removeChild(notification), 500);
-  }, 3000);
+    setTimeout(() => document.body.removeChild(notification), 600);
+  }, 2000);
 }
 
 // Función para mostrar indicador de carga mejorado

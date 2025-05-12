@@ -37,7 +37,7 @@ function web_form_shortcode()
     $picker_path = plugin_dir_url(__FILE__) . 'ios-picker.js';
 
     // Cargar CSS
-    wp_enqueue_style('web-form-styles', $css_path, array(), '5.2.4');
+    wp_enqueue_style('web-form-styles', $css_path, array(), '5.2.6');
 
     // Cargar Swiper CSS desde CDN
     wp_enqueue_style('swiper-css', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css', array(), '11.0.0');
