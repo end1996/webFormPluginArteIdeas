@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.1.7
+Version: 3.1.8
 Author: Enmanuel
 */
 
@@ -50,6 +50,9 @@ function web_form_shortcode()
 
     // Cargar JS
     wp_enqueue_script('script-js', $js_path, array('jquery'), '5.7.5', true);
+
+    // Cargar el manejador del carrito
+    wp_enqueue_script('cart-handler-js', plugin_dir_url(__FILE__) . 'cart-handler.js', array('jquery', 'wc-cart'), '1.0.0', true);
 
     // Cargar Swiper JS desde CDN (depende de jQuery)
     wp_enqueue_script('swiper-js', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', array('jquery'), '11.0.0', true);
@@ -420,6 +423,15 @@ function increase_upload_limits()
     @ini_set('max_input_time', '300');
 }
 add_action('init', 'increase_upload_limits');
+
+// Cargar el script del carrito en las páginas necesarias
+function load_cart_handler_script() {
+    // Solo cargar en páginas que contengan el carrito
+    if (is_cart() || is_checkout() || is_product()) {
+        wp_enqueue_script('cart-handler-js', plugin_dir_url(__FILE__) . 'cart-handler.js', array('jquery', 'wc-cart'), '1.0.0', true);
+    }
+}
+add_action('wp_enqueue_scripts', 'load_cart_handler_script');
 
 // Contenido de la página de configuración
 function print_image_settings_page_content()
