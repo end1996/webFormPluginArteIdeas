@@ -554,18 +554,36 @@ input.error, textarea.error {
   margin-top: 0;
 }
 
-/* Mostrar la notificación */
-.notification.show {
-  opacity: 1;
+
+
+@media (max-width: 480px) {
+  .notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 20px;
+  transform: translateY(-20px);
+  transition: opacity 0.3s, transform 0.3s;
+  }
+
+  .notification.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Estilo específico para dispositivos móviles */
-@media (max-width: 768px) {
+@media (max-width: 760px) {
   .notification {
-    align-items: center;
-    text-align: center;
-    font-size: 14px;
-    max-width: 80%;
+  position: fixed;
+  top: 30px;
+  right: 20px;
+  padding: 15px 20px;
+ 
+  }
+
+  .notification.show {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
