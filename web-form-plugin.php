@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.1.8
+Version: 3.2.3
 Author: Enmanuel
 */
 
@@ -32,12 +32,12 @@ function web_form_shortcode()
     }
 
     // Ruta de a los archivos de la aplicación
-    $css_path = plugin_dir_url(__FILE__) . 'styles.css';
-    $js_path = plugin_dir_url(__FILE__) . 'main.js';
-    $picker_path = plugin_dir_url(__FILE__) . 'ios-picker.js';
+    $css_path = plugin_dir_url(__FILE__) . 'assets/css/styles.css';
+    $js_path = plugin_dir_url(__FILE__) . 'assets/js/main.js';
+    $picker_path = plugin_dir_url(__FILE__) . 'assets/js/ios-picker.js';
 
     // Cargar CSS
-    wp_enqueue_style('web-form-styles', $css_path, array(), '5.2.6');
+    wp_enqueue_style('web-form-styles', $css_path, array(), '5.3.0');
 
     // Cargar Swiper CSS desde CDN
     wp_enqueue_style('swiper-css', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css', array(), '11.0.0');
@@ -50,9 +50,9 @@ function web_form_shortcode()
 
     // Cargar JS
     wp_enqueue_script('script-js', $js_path, array('jquery'), '5.7.5', true);
-
-    // Cargar el manejador del carrito
-    wp_enqueue_script('cart-handler-js', plugin_dir_url(__FILE__) . 'cart-handler.js', array('jquery', 'wc-cart'), '1.0.0', true);
+    wp_enqueue_script('events-js', plugin_dir_url(__FILE__) . 'assets/js/events.js', array('jquery'), '1.0.0', true);
+    wp_enqueue_script('paraelmain-js', plugin_dir_url(__FILE__) . 'assets/js/paraelmain.js', array('jquery'), '1.0.0', true);
+    wp_enqueue_script('requestHttp-js', plugin_dir_url(__FILE__) . 'assets/js/requestHttp.js', array('jquery'), '1.0.0', true);
 
     // Cargar Swiper JS desde CDN (depende de jQuery)
     wp_enqueue_script('swiper-js', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', array('jquery'), '11.0.0', true);
@@ -110,7 +110,7 @@ function process_print_image_to_cart()
     $custom_height = isset($_POST['custom_height']) ? intval($_POST['custom_height']) : 0;
     $is_custom_size = isset($_POST['is_custom_size']) ? filter_var($_POST['is_custom_size'], FILTER_VALIDATE_BOOLEAN) : false;
 
-    $product_id = get_option('print_image_product_id', 439);
+    $product_id = get_option('print_image_product_id', 244);
     if (!$product_id || !wc_get_product($product_id)) {
         error_log('Error: No se ha configurado un producto base para impresiones');
         wp_send_json_error('No se ha configurado un producto base para impresiones');
@@ -432,7 +432,23 @@ function load_cart_handler_script() {
     }
 }
 add_action('wp_enqueue_scripts', 'load_cart_handler_script');
+// Cargar los estilos personalizados para vista de carrito
+function load_cart_page_styles() {
+    // Cargar solo en la página del carrito
+    if (is_cart()) {
+        wp_enqueue_style('cart-page-css', plugin_dir_url(__FILE__) . 'assets/css/cart-page-style.css', array(), '1.0.0');
+    }
+}
+add_action('wp_enqueue_scripts', 'load_cart_page_styles');
 
+// Cargar custom-checkout.php SOLO en la página de checkout
+function load_custom_checkout_script() {
+    // Verificar si WooCommerce está activo y si es la página de checkout
+    if (class_exists('WooCommerce') && is_checkout() && !is_order_received_page()) {
+        require_once plugin_dir_path(__FILE__) . 'includes/custom-checkout.php';
+    }
+}
+add_action('wp', 'load_custom_checkout_script');
 // Contenido de la página de configuración
 function print_image_settings_page_content()
 {
@@ -513,4 +529,42 @@ add_filter('woocommerce_order_item_display_meta_value', function ($value, $meta,
 
     // Si no es una imagen, retornar el valor original
     return $value;
+}, 10, 3);
+
+// Añadir botón de seguir comprando en vista de checkout
+remove_action( 'woocommerce_proceed_to_checkout', 'woocommerce_button_proceed_to_checkout', 20 );
+
+add_action( 'woocommerce_proceed_to_checkout', 'mi_boton_personalizado_checkout', 20 );
+
+function mi_boton_personalizado_checkout() {
+    ?>
+    <div class="wc-proceed-to-checkout">
+        <p>
+            <a href="https://webformwp.reflexoperu.com.pe/" class="button wc-backward" style=" width: 100%; height: 35%; text-align: center; font-size: 16px;"> Seguir comprando  </a>
+        </p>
+    </div>
+    <?php
+}
+
+/**
+ * Cambia la URL del logo en WordPress
+ */
+function cambiar_url_logo_personalizada( $html ) {
+    // Reemplaza la URL actual con tu nueva URL deseada
+    $nueva_url = 'https://webformwp.reflexoperu.com.pe/home/'; // Cambia esto por tu URL
+    
+    // Modifica el HTML del logo
+    $html = preg_replace('/href="(.*?)"/', 'href="'.esc_url($nueva_url).'"', $html);
+    
+    return $html;
+}
+add_filter('get_custom_logo', 'cambiar_url_logo_personalizada');
+
+// Redirección al login de vista de impresión
+
+add_filter('login_redirect', function ($redirect_to, $request, $user) {
+    if (isset($user->roles) && is_array($user->roles)) {
+        return 'https://webformwp.reflexoperu.com.pe';
+    }
+    return $redirect_to;
 }, 10, 3);

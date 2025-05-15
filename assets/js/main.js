@@ -43,7 +43,6 @@ const bulkSizePrices12 = {
 
 document.addEventListener("DOMContentLoaded", function () {
   initializeSizePicker();
-  initializeFramePicker();
   setupEventListeners();
   setupCommentLengthChecker();
 

@@ -1,0 +1,26 @@
+table {
+	margin: 0;
+}
+.woocommerce-cart .cart_totals {
+    margin-top: 0;
+}
+
+/* Ocultar el botón de actualizar carrito en la página del carrito */
+.woocommerce-cart button[name="update_cart"] {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+    .woocommerce-cart .cart-collaterals,
+    .woocommerce-cart .woocommerce-cart-form {
+        width: 100%;
+    }
+	
+	.cart-collaterals {
+		display: none;
+	}
+    /* Ocultar nombre del producto*/
+    .product-name a {
+        display :none;
+    }
+}
