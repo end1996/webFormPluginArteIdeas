@@ -67,7 +67,7 @@
             Indicaciones de impresión
         </div>
         
-        <textarea class="comment-area" placeholder=" Escribe aquí tus comentarios..." maxlength="255"></textarea>
+        <textarea class="comment-area" placeholder=" Escribe aquí tus comentarios..." maxlength="255" required></textarea>
     </div>
 
     <div class="section">

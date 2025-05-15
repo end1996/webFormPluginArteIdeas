@@ -24,3 +24,34 @@ table {
         display :none;
     }
 }
+
+/* Desktop y tablet */
+.woocommerce-cart .cart_item .product-price {
+    position: relative;
+    min-height: 60px;
+}
+
+/* Precio del marco siempre abajo */
+.woocommerce-cart .cart_item .product-price .precio-marco {
+    position: absolute;
+    left: 0;
+    bottom: 40px;
+    width: 100%;
+    color: #666;
+    font-weight: bold;
+    background: #fff;
+    padding-top: 2px;
+    z-index: 2;
+}
+
+@media (max-width: 768px) {
+    .woocommerce-cart .cart_item .product-price .precio-marco {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .woocommerce-cart .cart_item .product-price .precio-marco {
+        display: none;
+    }
+}

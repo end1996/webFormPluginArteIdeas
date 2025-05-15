@@ -697,7 +697,13 @@ function addToCart() {
   }
   console.log("🚀 pricePerUnit", pricePerUnit);
 
-  const comments = document.querySelector(".comment-area").value;
+  // Validar que el campo de comentarios no esté vacío
+  const comments = document.querySelector(".comment-area").value.trim();
+  if (!comments) {
+    showNotification("Por favor, escribe un comentario.", "error");
+    document.querySelector(".comment-area").focus();
+    return;
+  }
   const withFrame =
     document.querySelector('input[name="frame"]:checked').value !== "sin-marco";
   let frame = "sin-marco";

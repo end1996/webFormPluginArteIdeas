@@ -49,7 +49,7 @@ function web_form_shortcode()
     wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.5', true);
 
     // Cargar JS
-    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.7.8', true);
+    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.7.9', true);
     wp_enqueue_script('events-js', plugin_dir_url(__FILE__) . 'assets/js/events.js', array('jquery'), '1.0.1', true);
     wp_enqueue_script('requestHttp-js', plugin_dir_url(__FILE__) . 'assets/js/requestHttp.js', array('jquery'), '1.0.0', true);
 
@@ -307,11 +307,8 @@ function update_cart_item_price($cart)
         $is_custom_size = isset($cart_item['is_custom_size']) ? $cart_item['is_custom_size'] : false;
 
         if ($is_custom_size && isset($cart_item['price'])) {
-            // Si es tamaño personalizado, usar el precio enviado
             $precio_final = floatval($cart_item['price']);
-            $product->set_price($precio_final);
         } else {
-            // Lógica existente para tamaños estándar
             $size = isset($cart_item['size']) ? $cart_item['size'] : '';
             if (!empty($size)) {
                 if ($quantity >= 12 && isset($bulk_size_prices_12[$size])) {
@@ -321,10 +318,10 @@ function update_cart_item_price($cart)
                 } elseif (isset($size_prices[$size])) {
                     $precio_final = $size_prices[$size];
                 }
-                if (isset($precio_final)) {
-                    $product->set_price($precio_final);
-                }
             }
+        }
+        if (isset($precio_final)) {
+            $product->set_price($precio_final);
         }
     }
 }
@@ -346,7 +343,7 @@ function display_print_image_cart_item_data(
             $thumbnails = '';
             foreach ($images as $img) {
                 if (is_array($img) && !empty($img['image_url'])) {
-                    $thumbnails .= '<img src="' . esc_url($img['image_url']) . '" alt="Imagen subida" class="cart-image-preview" style="max-width:60px;max-height:60px;margin-right:5px;border:1px solid #ccc;border-radius:4px;" />';
+                    $thumbnails .= '<img src="' . esc_url($img['image_url']) . '" alt="Imagen subida" class="cart-image-preview" style="max-width:60px; height:40px; object-fit: cover;margin-right:2px;margin-bottom:2px;border:1px solid #ccc;border-radius:4px;" />';
                 }
             }
             if (!empty($thumbnails)) {
@@ -360,11 +357,12 @@ function display_print_image_cart_item_data(
         if (isset($cart_item['size'])) {
             $item_data[] = array('key' => 'Tamaño', 'value' => $cart_item['size']);
         }
-        if (isset($cart_item['frame']) && $cart_item['frame'] !== 'sin-marco') {
-            $item_data[] = array('key' => 'Marco', 'value' => $cart_item['frame']);
-        }
         if (!empty($cart_item['comments'])) {
             $item_data[] = array('key' => 'Comentarios', 'value' => $cart_item['comments']);
+        }
+        if (isset($cart_item['frame']) && $cart_item['frame'] !== 'sin-marco') {
+            $frame_value = esc_html($cart_item['frame']);
+            $item_data[] = array('key' => 'Marco', 'value' => $frame_value);
         }
     }
     return $item_data;
@@ -426,7 +424,8 @@ function increase_upload_limits()
 add_action('init', 'increase_upload_limits');
 
 // Cargar el script del carrito en las páginas necesarias
-function load_cart_handler_script() {
+function load_cart_handler_script()
+{
     // Solo cargar en páginas que contengan el carrito
     if (is_cart() || is_checkout() || is_product()) {
         wp_enqueue_script('cart-handler-js', plugin_dir_url(__FILE__) . 'cart-handler.js', array('jquery', 'wc-cart'), '1.0.0', true);
@@ -434,16 +433,18 @@ function load_cart_handler_script() {
 }
 add_action('wp_enqueue_scripts', 'load_cart_handler_script');
 // Cargar los estilos personalizados para vista de carrito
-function load_cart_page_styles() {
+function load_cart_page_styles()
+{
     // Cargar solo en la página del carrito
     if (is_cart()) {
-        wp_enqueue_style('cart-page-css', plugin_dir_url(__FILE__) . 'assets/css/cart-page-style.css', array(), '1.0.0');
+        wp_enqueue_style('cart-page-css', plugin_dir_url(__FILE__) . 'assets/css/cart-page-style.css', array(), '1.0.2');
     }
 }
 add_action('wp_enqueue_scripts', 'load_cart_page_styles');
 
 // Cargar custom-checkout.php SOLO en la página de checkout
-function load_custom_checkout_script() {
+function load_custom_checkout_script()
+{
     // Verificar si WooCommerce está activo y si es la página de checkout
     if (class_exists('WooCommerce') && is_checkout() && !is_order_received_page()) {
         require_once plugin_dir_path(__FILE__) . 'includes/custom-checkout.php';
@@ -506,7 +507,7 @@ add_filter('woocommerce_order_item_display_meta_value', function ($value, $meta,
         foreach ($image_urls as $img_url) {
             $img_url = esc_url($img_url);
             $thumbnails .= '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">'
-                . '<img src="' . $img_url . '" alt="Imagen subida" class="order-image-thumbnail" style="max-width:60px;max-height:60px;border:1px solid #ccc;border-radius:4px;" />';
+                . '<img src="' . $img_url . '" alt="Imagen subida" class="order-image-thumbnail" style="max-width:60px; height:40px; object-fit: cover;margin-right:2px;margin-bottom:2px;border:1px solid #ccc;border-radius:4px;" />';
             // Mostrar el enlace de descarga solo si está en el área de administración
             if (is_admin()) {
                 $thumbnails .= '<a href="' . $img_url . '" target="_blank" style="font-size:12px;word-break:break-all;text-align:center;display:inline-block;">Descargar / Ver imagen</a>';
@@ -533,15 +534,17 @@ add_filter('woocommerce_order_item_display_meta_value', function ($value, $meta,
 }, 10, 3);
 
 // Añadir botón de seguir comprando en vista de checkout
-remove_action( 'woocommerce_proceed_to_checkout', 'woocommerce_button_proceed_to_checkout', 20 );
+remove_action('woocommerce_proceed_to_checkout', 'woocommerce_button_proceed_to_checkout', 20);
 
-add_action( 'woocommerce_proceed_to_checkout', 'mi_boton_personalizado_checkout', 20 );
+add_action('woocommerce_proceed_to_checkout', 'mi_boton_personalizado_checkout', 20);
 
-function mi_boton_personalizado_checkout() {
+function mi_boton_personalizado_checkout()
+{
     ?>
     <div class="wc-proceed-to-checkout">
         <p>
-            <a href="https://webformwp.reflexoperu.com.pe/" class="button wc-backward" style=" width: 100%; height: 35%; text-align: center; font-size: 16px;"> Seguir comprando  </a>
+            <a href="https://webformwp.reflexoperu.com.pe/" class="button wc-backward"
+                style=" width: 100%; height: 35%; text-align: center; font-size: 16px;"> Seguir comprando </a>
         </p>
     </div>
     <?php
@@ -550,13 +553,14 @@ function mi_boton_personalizado_checkout() {
 /**
  * Cambia la URL del logo en WordPress
  */
-function cambiar_url_logo_personalizada( $html ) {
+function cambiar_url_logo_personalizada($html)
+{
     // Reemplaza la URL actual con tu nueva URL deseada
     $nueva_url = 'https://webformwp.reflexoperu.com.pe/home/'; // Cambia esto por tu URL
-    
+
     // Modifica el HTML del logo
-    $html = preg_replace('/href="(.*?)"/', 'href="'.esc_url($nueva_url).'"', $html);
-    
+    $html = preg_replace('/href="(.*?)"/', 'href="' . esc_url($nueva_url) . '"', $html);
+
     return $html;
 }
 add_filter('get_custom_logo', 'cambiar_url_logo_personalizada');
@@ -569,3 +573,42 @@ add_filter('login_redirect', function ($redirect_to, $request, $user) {
     }
     return $redirect_to;
 }, 10, 3);
+
+add_filter('woocommerce_cart_item_price', function ($price_html, $cart_item, $cart_item_key) {
+    // Precio del marco (alineado con el metadato "Marco")
+    if (!empty($cart_item['frame']) && $cart_item['frame'] !== 'sin-marco' && !empty($cart_item['frame_price'])) {
+        $price_html .= '<div class="precio-marco" style="margin-top:4px;">' . wc_price(floatval($cart_item['frame_price'])) . '</div>';
+    }
+    return $price_html;
+}, 10, 3);
+
+add_filter('woocommerce_cart_item_subtotal', function ($subtotal, $cart_item, $cart_item_key) {
+    if (!empty($cart_item['frame_price']) && $cart_item['frame'] !== 'sin-marco') {
+        $frame_price = floatval($cart_item['frame_price']);
+        $quantity = isset($cart_item['quantity']) ? $cart_item['quantity'] : 1;
+        $base_subtotal = wc_price($cart_item['data']->get_price() * $quantity);
+        $frame_subtotal = wc_price($frame_price * $quantity);
+        $total = ($cart_item['data']->get_price() + $frame_price) * $quantity;
+        $total_html = wc_price($total);
+        $subtotal = '<div class="subtotal-base">' . $base_subtotal . '</div>';
+        $subtotal .= '<div class="subtotal-marco" style="color:#666;">+ Marco: <strong>' . $frame_subtotal . '</strong></div>';
+        //$subtotal .= '<div class="subtotal-total" style="margin-top:4px;font-weight:bold;">Total: ' . $total_html . '</div>';
+    }
+    return $subtotal;
+}, 10, 3);
+
+add_action('woocommerce_cart_calculate_fees', function ($cart) {
+    if (is_admin() && !defined('DOING_AJAX')) {
+        return;
+    }
+    foreach ($cart->get_cart() as $cart_item) {
+        if (!empty($cart_item['frame_price']) && $cart_item['frame'] !== 'sin-marco') {
+            $frame_price = floatval($cart_item['frame_price']);
+            $quantity = isset($cart_item['quantity']) ? $cart_item['quantity'] : 1;
+            if ($frame_price > 0) {
+                $fee_name = 'Marco (' . esc_html($cart_item['frame']) . ')';
+                $cart->add_fee($fee_name, $frame_price * $quantity, false);
+            }
+        }
+    }
+});
