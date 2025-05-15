@@ -9,6 +9,8 @@ function calcularPrecioMarco(price) {
 
     console.log(priceDimensionsBaseMain)
     marcoSeleccionado = price;
+    // Exponer el precio del marco seleccionado a la variable global marcoSeleccionado
+    window.marcoSeleccionado = marcoSeleccionado;
 
     //alert(marcoSeleccionado)
 

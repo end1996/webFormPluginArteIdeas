@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.2.3
+Version: 3.2.4
 Author: Enmanuel
 */
 
@@ -49,9 +49,8 @@ function web_form_shortcode()
     wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.5', true);
 
     // Cargar JS
-    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.7.5', true);
-    wp_enqueue_script('events-js', plugin_dir_url(__FILE__) . 'assets/js/events.js', array('jquery'), '1.0.0', true);
-    wp_enqueue_script('paraelmain-js', plugin_dir_url(__FILE__) . 'assets/js/paraelmain.js', array('jquery'), '1.0.0', true);
+    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.7.8', true);
+    wp_enqueue_script('events-js', plugin_dir_url(__FILE__) . 'assets/js/events.js', array('jquery'), '1.0.1', true);
     wp_enqueue_script('requestHttp-js', plugin_dir_url(__FILE__) . 'assets/js/requestHttp.js', array('jquery'), '1.0.0', true);
 
     // Cargar Swiper JS desde CDN (depende de jQuery)
@@ -109,6 +108,7 @@ function process_print_image_to_cart()
     $custom_width = isset($_POST['custom_width']) ? intval($_POST['custom_width']) : 0;
     $custom_height = isset($_POST['custom_height']) ? intval($_POST['custom_height']) : 0;
     $is_custom_size = isset($_POST['is_custom_size']) ? filter_var($_POST['is_custom_size'], FILTER_VALIDATE_BOOLEAN) : false;
+    $frame_price = isset($_POST['frame_price']) ? floatval($_POST['frame_price']) : 0.0;
 
     $product_id = get_option('print_image_product_id', 244);
     if (!$product_id || !wc_get_product($product_id)) {
@@ -178,6 +178,7 @@ function process_print_image_to_cart()
         'is_custom_size' => $is_custom_size,
         'frame' => $frame,
         'comments' => $comments,
+        'frame_price' => $frame_price,
         'unique_key' => md5(microtime() . rand())
     );
 

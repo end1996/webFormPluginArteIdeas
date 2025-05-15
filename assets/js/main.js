@@ -5,6 +5,7 @@ let uploadedImagesData = []; // Array para almacenar múltiples imágenes
 let sizePicker;
 let selectedSize;
 let currentSizePrices;
+let priceDimensionsBaseMain;
 
 const sizePrices = {
   "10X15": 5.0,
@@ -700,12 +701,15 @@ function addToCart() {
   const withFrame =
     document.querySelector('input[name="frame"]:checked').value !== "sin-marco";
   let frame = "sin-marco";
+  let frame_price = 0;
 
   if (withFrame) {
     const selectedFrameElement = document.querySelector(
       "#frame-picker .swiper-slide.selected"
     );
-    frame = selectedFrameElement ? currentSelectedFrame : "frame1";
+    frame = selectedFrameElement ? currentSelectedFrame : "Sin marco";
+    // marcoSeleccionado viene de events.js y tiene el precio del marco seleccionado
+    frame_price = window.marcoSeleccionado !== "undefined" ? parseFloat(window.marcoSeleccionado) : 0;
   }
 
   if (typeof ajax_object === "undefined") {
@@ -733,6 +737,7 @@ function addToCart() {
   formData.append("custom_height", customHeight || 0);
   formData.append("comments", comments);
   formData.append("frame", frame);
+  formData.append("frame_price", frame_price);
 
   // Agregar todas las imágenes como image_data[]
   uploadedImagesData.forEach((imageData, idx) => {
@@ -899,6 +904,8 @@ function updateTotalPrice() {
       pricePerUnit = Math.round(height * width * 0.03);
 
       const totalPrice = pricePerUnit * quantity;
+      priceDimensionsBaseMain = totalPrice.toFixed(2);
+
       document.getElementById(
         "total-price-button"
       ).innerText = `S/. ${totalPrice.toFixed(2)}`;
@@ -916,6 +923,7 @@ function updateTotalPrice() {
     }
 
     const totalPrice = pricePerUnit * quantity;
+    priceDimensionsBaseMain = totalPrice.toFixed(2);
 
     // Update total price text on button
     document.getElementById(
