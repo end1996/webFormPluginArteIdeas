@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.2.4
+Version: 3.2.6
 Author: Enmanuel
 */
 
@@ -49,9 +49,9 @@ function web_form_shortcode()
     wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.5', true);
 
     // Cargar JS
-    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.7.9', true);
-    wp_enqueue_script('events-js', plugin_dir_url(__FILE__) . 'assets/js/events.js', array('jquery'), '1.0.1', true);
-    wp_enqueue_script('requestHttp-js', plugin_dir_url(__FILE__) . 'assets/js/requestHttp.js', array('jquery'), '1.0.0', true);
+    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.8.1', true);
+    wp_enqueue_script('events-js', plugin_dir_url(__FILE__) . 'assets/js/events.js', array('jquery'), '1.0.2', true);
+    wp_enqueue_script('requestHttp-js', plugin_dir_url(__FILE__) . 'assets/js/requestHttp.js', array('jquery'), '1.0.2', true);
 
     // Cargar Swiper JS desde CDN (depende de jQuery)
     wp_enqueue_script('swiper-js', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', array('jquery'), '11.0.0', true);
@@ -102,6 +102,7 @@ function process_print_image_to_cart()
 
     $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 1;
     $size = isset($_POST['size']) ? sanitize_text_field($_POST['size']) : '';
+    $variation_id = isset($_POST['variation_id']) ? sanitize_text_field($_POST['variation_id']) : 0;
     $price = isset($_POST['price']) ? floatval($_POST['price']) : 0.0;
     $comments = isset($_POST['comments']) ? sanitize_textarea_field($_POST['comments']) : '';
     $frame = isset($_POST['frame']) ? sanitize_text_field($_POST['frame']) : 'sin-marco';
@@ -110,12 +111,15 @@ function process_print_image_to_cart()
     $is_custom_size = isset($_POST['is_custom_size']) ? filter_var($_POST['is_custom_size'], FILTER_VALIDATE_BOOLEAN) : false;
     $frame_price = isset($_POST['frame_price']) ? floatval($_POST['frame_price']) : 0.0;
 
-    $product_id = get_option('print_image_product_id', 244);
+    // ID DEL PRODUCTO
+    $product_id = get_option('print_image_product_id', 159);
     if (!$product_id || !wc_get_product($product_id)) {
         error_log('Error: No se ha configurado un producto base para impresiones');
         wp_send_json_error('No se ha configurado un producto base para impresiones');
         return;
     }
+
+    error_log('ID DE LA VARIACION: ' . $variation_id);
 
     $upload_dir = wp_upload_dir();
     $images_data = [];

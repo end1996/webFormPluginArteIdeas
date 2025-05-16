@@ -5,45 +5,18 @@ let uploadedImagesData = []; // Array para almacenar múltiples imágenes
 let sizePicker;
 let selectedSize;
 let currentSizePrices;
+let selectedSizeId;
+let quantity_condition_text = [1, 4, 12, 100]
+
+let precios_por_cantidad = {}; 
+let dimension_precio_data = {};
+
 let priceDimensionsBaseMain;
-
-const sizePrices = {
-  "10X15": 5.0,
-  "13X18": 7.0,
-  "15X21": 8.0,
-  "20X25": 15.0,
-  "20X30": 18.0,
-  "25X38": 25.0,
-  "30X45": 35.0,
-  "30X60": 45.0,
-};
-
-// Precios para cantidades mayores o iguales a 4
-const bulkSizePrices = {
-  "10X15": 3.0,
-  "13X18": 5.0,
-  "15X21": 6.0,
-  "20X25": 13.0,
-  "20X30": 15.0,
-  "25X38": 20.0,
-  "30X45": 30.0,
-  "30X60": 40.0,
-};
-
-// Precios para cantidades mayores o iguales a 12
-const bulkSizePrices12 = {
-  "10X15": 2.5,
-  "13X18": 4.0,
-  "15X21": 5.0,
-  "20X25": 10.0,
-  "20X30": 12.0,
-  "25X38": 18.0,
-  "30X45": 25.0,
-  "30X60": 35.0,
-};
+let cantidad_index;
+let variation_id = 0;
 
 document.addEventListener("DOMContentLoaded", function () {
-  initializeSizePicker();
+  getDimensions();
   setupEventListeners();
   setupCommentLengthChecker();
 
@@ -55,11 +28,27 @@ function initializeSizePicker() {
   const sizePickerContainer = document.getElementById("size-picker");
 
   function getCurrentSizePrices(quantity) {
-    return quantity >= 12
-      ? bulkSizePrices12
-      : quantity >= 4
-      ? bulkSizePrices
-      : sizePrices;
+    let sizePriceDynamic;
+    // PRECIOS POR CANTIDAD DINAMICO
+
+    cantidad_index = quantity;
+
+    console.log(precios_por_cantidad)
+    console.log(dimension_precio_data);
+
+    for( let pQuantity in precios_por_cantidad ){
+      
+      let parsedQuantity = parseInt(pQuantity);
+
+      let isGreater = parsedQuantity === 1 ? parsedQuantity <= quantity : parsedQuantity < quantity;
+
+      if ( isGreater ) {
+        sizePriceDynamic = precios_por_cantidad[pQuantity];
+      }
+
+    }
+
+    return sizePriceDynamic;
   }
 
   function updateSizeOptions(quantity) {
@@ -69,7 +58,7 @@ function initializeSizePicker() {
       label: `${value.replace(
         "X",
         "cm Ancho X "
-      )}cm Alto => (S/.${currentSizePrices[value].toFixed(2)})`,
+      )}cm Alto => (S/.${currentSizePrices[value]})`,
     }));
 
     // Guardar el valor actual antes de destruir
@@ -89,6 +78,7 @@ function initializeSizePicker() {
         selectedSize = value; // Guardar nuevo valor seleccionado
         revalidateImagesWithNewSize(value);
         updateTotalPrice();
+        reiniciarPrecioMarco();
       },
     });
   }
@@ -156,6 +146,7 @@ function setupEventListeners() {
     }
 
     updateTotalPrice();
+    reiniciarPrecioMarco();
   });
 
   quantityInput.addEventListener("blur", function () {
@@ -193,6 +184,7 @@ function handleCustomSize() {
       showNotification("El ancho no puede ser mayor a 60 cm.", "error");
     }
     updateTotalPrice();
+    reiniciarPrecioMarco();
   });
 
   widthInput.addEventListener("blur", function () {
@@ -202,6 +194,7 @@ function handleCustomSize() {
       showNotification("El ancho no puede ser menor a 10 cm.", "error");
     }
     updateTotalPrice();
+    reiniciarPrecioMarco();
   });
 
   // ALTO
@@ -216,6 +209,7 @@ function handleCustomSize() {
       showNotification("El alto no puede ser mayor a 100 cm.", "error");
     }
     updateTotalPrice();
+    reiniciarPrecioMarco();
   });
 
   heightInput.addEventListener("blur", function () {
@@ -225,6 +219,7 @@ function handleCustomSize() {
       showNotification("El alto no puede ser menor a 15 cm.", "error");
     }
     updateTotalPrice();
+    reiniciarPrecioMarco();
   });
 
   document
@@ -239,6 +234,7 @@ function toggleSizeOptions(type) {
     document.getElementById("custom-size").style.display = "none";
     this.selectedOptionSize = "standard";
     updateTotalPrice(); 
+    reiniciarPrecioMarco();
   } else {
     document.getElementById("standard-sizes").style.display = "none";
     document.getElementById("custom-size").style.display = "flex";
@@ -498,6 +494,7 @@ function handleFiles(e) {
             uploadElements.classList.remove("has-images"); // Remover clase si no hay imágenes
           }
           updateTotalPrice(); // Actualizar el precio total
+          reiniciarPrecioMarco();
         });
 
         // Crear la etiqueta de advertencia de baja calidad
@@ -513,6 +510,7 @@ function handleFiles(e) {
         imagesGrid.appendChild(imageItem);
 
         updateTotalPrice(); // Actualizar el precio total
+        reiniciarPrecioMarco();
 
         pending--; // Decrementar el contador de pendientes
       };
@@ -737,6 +735,7 @@ function addToCart() {
   formData.append("nonce", ajax_object.nonce);
   formData.append("quantity", quantity);
   formData.append("size", size);
+  formData.append("variation_id", variation_id);
   formData.append("price", pricePerUnit);
   formData.append("is_custom_size", isCustomSize);
   formData.append("custom_width", customWidth || 0);
@@ -744,6 +743,20 @@ function addToCart() {
   formData.append("comments", comments);
   formData.append("frame", frame);
   formData.append("frame_price", frame_price);
+
+  alert(
+    formData.get("action") + "\n" +
+    formData.get("nonce") + "\n" +
+    formData.get("quantity") + "\n" +
+    formData.get("size") + "\n" +
+    formData.get("variation_id") + "\n" +
+    formData.get("price") + "\n" +
+    formData.get("is_custom_size") + "\n" +
+    formData.get("custom_width") + "\n" +
+    formData.get("custom_height") + "\n" +
+    formData.get("comments") + "\n" +
+    formData.get("frame") + "\n"
+  );
 
   // Agregar todas las imágenes como image_data[]
   uploadedImagesData.forEach((imageData, idx) => {

@@ -1,5 +1,46 @@
 // PETICIONES HTTP --------------------------------------------------------------------------------------------------------
 
+// DIMENSIONES | PRECIOS ---------------------------------------
+const getDimensions = async () => {
+    try {
+
+        //if ( siteUrl == null || siteUrl == undefined ) { return; }
+
+        const responseDimensions = await fetch(window.siteUrl+'/wp-json/api/v1/dimensiones');
+        const responsePrice = await fetch(window.siteUrl+'/wp-json/api/v1/dimensiones_precio');
+
+        if (!responseDimensions.ok || !responsePrice.ok ) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const dimensionsData = await responseDimensions.json();
+        const priceData = await responsePrice.json();
+        const dimensiones = dimensionsData.custom_dimensions_data;
+        const precios = priceData.price_data;
+
+        dimensiones.forEach(dimension => {
+            const key = `${dimension.width}X${dimension.height}`;
+
+            precios.forEach(precio => {
+                if (precio.dimension_id == dimension.id) {
+                    if (!precios_por_cantidad[precio.quantity] ) precios_por_cantidad[precio.quantity] = {};
+                    if (!dimension_precio_data[precio.quantity] ) dimension_precio_data[precio.quantity] = {};
+
+                    precios_por_cantidad[precio.quantity][key] = precio.price;
+                    dimension_precio_data[precio.quantity][key] = precio.variation_id;
+                }
+            });
+        });
+        
+        initializeSizePicker();
+        console.log("Picker inicializado");
+        
+
+    } catch (error) {
+        console.error("Error al obtener dimensiones:", error);
+    }
+}
+
 // MARCOS --------------------------------------------
 const getFrames = async ( url ) => {
     try{
@@ -38,6 +79,7 @@ const getFrames = async ( url ) => {
         document.getElementById('frame-picker').innerHTML = html;
 
         initializeFramePicker();
+        console.log("Picker de marcos inicializado");
     } catch (error) {
         console.error("Error al obtener los marcos:", error);
     }

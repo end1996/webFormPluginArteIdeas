@@ -3,14 +3,36 @@ let priceBase = 'base';
 let marcoSeleccionado = null;
 priceDimensionsBaseMain = null;
 
+
+// EVENTOS DE CAMBIO EN LA CANTIDAD ----------------------------------------------------------------------------------------------------------
+
+function cambioCantidad(){
+
+    let cantidad = parseInt(document.getElementById('iptCantidad').value)
+
+    if ( cantidad > 4 && cantidad <=12 ) {
+        getDimensions(0.12)
+    }
+    else if ( cantidad > 12 && cantidad <=100 ){
+        getDimensions(0.0855)
+    }
+    else if ( cantidad > 100 ){
+        getDimensions(0.020)
+    }
+    else {
+        getDimensions(0.20)
+    }
+
+}
+
+// EVENTOS DE CAMBIO EN LA CANTIDAD ----------------------------------------------------------------------------------------------------------
+
 // EVENTO SELECCION DE MARCO PRECIO ----------------------------------------------------------------------------------------------------------
 
 function calcularPrecioMarco(price) {
 
     console.log(priceDimensionsBaseMain)
     marcoSeleccionado = price;
-    // Exponer el precio del marco seleccionado a la variable global marcoSeleccionado
-    window.marcoSeleccionado = marcoSeleccionado;
 
     //alert(marcoSeleccionado)
 
