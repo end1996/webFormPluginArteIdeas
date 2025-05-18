@@ -622,3 +622,12 @@ add_action('woocommerce_cart_calculate_fees', function ($cart) {
         }
     }
 });
+
+// Mostrar solo el nombre base del producto en el carrito y checkout, sin atributos ni enlaces
+add_filter('woocommerce_cart_item_name', function($product_name, $cart_item, $cart_item_key) {
+    if (isset($cart_item['data']) && is_object($cart_item['data'])) {
+        // Solo el nombre base, sin enlace ni atributos
+        return esc_html($cart_item['data']->get_title());
+    }
+    return $product_name;
+}, 99, 3);
