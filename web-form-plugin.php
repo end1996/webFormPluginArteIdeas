@@ -49,7 +49,7 @@ function web_form_shortcode()
     wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.5', true);
 
     // Cargar JS
-    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.8.1', true);
+    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.8.2', true);
     wp_enqueue_script('events-js', plugin_dir_url(__FILE__) . 'assets/js/events.js', array('jquery'), '1.0.2', true);
     wp_enqueue_script('requestHttp-js', plugin_dir_url(__FILE__) . 'assets/js/requestHttp.js', array('jquery'), '1.0.2', true);
 
@@ -186,7 +186,13 @@ function process_print_image_to_cart()
         'unique_key' => md5(microtime() . rand())
     );
 
-    $cart_item_key = WC()->cart->add_to_cart($product_id, $quantity, 0, array(), $cart_item_data);
+    // --- NUEVO: Añadir variación correctamente ---
+    $variation = array();
+    if (!empty($size)) {
+        $variation['attribute_pa_dimensiones'] = $size;
+    }
+
+    $cart_item_key = WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variation, $cart_item_data);
 
     if ($cart_item_key) {
         wp_send_json_success(array(

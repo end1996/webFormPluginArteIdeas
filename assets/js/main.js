@@ -28,27 +28,7 @@ function initializeSizePicker() {
   const sizePickerContainer = document.getElementById("size-picker");
 
   function getCurrentSizePrices(quantity) {
-    let sizePriceDynamic;
-    // PRECIOS POR CANTIDAD DINAMICO
-
-    cantidad_index = quantity;
-
-    console.log(precios_por_cantidad)
-    console.log(dimension_precio_data);
-
-    for( let pQuantity in precios_por_cantidad ){
-      
-      let parsedQuantity = parseInt(pQuantity);
-
-      let isGreater = parsedQuantity === 1 ? parsedQuantity <= quantity : parsedQuantity < quantity;
-
-      if ( isGreater ) {
-        sizePriceDynamic = precios_por_cantidad[pQuantity];
-      }
-
-    }
-
-    return sizePriceDynamic;
+    return getCurrentRangeObject(precios_por_cantidad, quantity);
   }
 
   function updateSizeOptions(quantity) {
@@ -665,6 +645,20 @@ function getSelectedSizePrice() {
   return currentSizePrices[selectedSize] || 0; // Retornar el precio correspondiente
 }
 
+// Función utilitaria para obtener el objeto correcto según el rango de cantidad
+function getCurrentRangeObject(obj, quantity) {
+  let best = null;
+  let bestKey = null;
+  Object.keys(obj).forEach(key => {
+    const keyInt = parseInt(key);
+    if (keyInt <= quantity && (bestKey === null || keyInt > bestKey)) {
+      bestKey = keyInt;
+      best = obj[key];
+    }
+  });
+  return best;
+}
+
 // Función para añadir al carrito - Modificada para procesar múltiples imágenes de forma secuencial
 function addToCart() {
   console.log("🚀 addToCart() fue llamada correctamente");
@@ -686,7 +680,7 @@ function addToCart() {
       showNotification("Ingresa las medidas personalizadas", "error");
       return;
     }
-    size = `${customWidth}x${customHeight}`;
+    size = `${customWidth}X${customHeight}`;
     pricePerUnit = parseInt(customHeight) * parseInt(customWidth) * 0.03;
     pricePerUnit = Math.round(pricePerUnit);
   } else {
@@ -694,6 +688,15 @@ function addToCart() {
     pricePerUnit = getSelectedSizePrice();
   }
   console.log("🚀 pricePerUnit", pricePerUnit);
+
+  // --- OBTENER VARIATION_ID SEGÚN LA LÓGICA DE dimension_precio_data ---
+  const quantityInt = parseInt(quantity) || 1;
+  const currentVariationObj = getCurrentRangeObject(dimension_precio_data, quantityInt);
+  let variation_id = 0;
+  if (currentVariationObj && currentVariationObj[size]) {
+    variation_id = currentVariationObj[size];
+  }
+  console.log("🆔 variation_id seleccionado:", variation_id);
 
   // Validar que el campo de comentarios no esté vacío
   const comments = document.querySelector(".comment-area").value.trim();
