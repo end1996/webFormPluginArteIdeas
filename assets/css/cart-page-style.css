@@ -1,3 +1,7 @@
+:root {
+    --font-size-cart-item: 0.875rem;
+}
+
 table {
 	margin: 0;
 }
@@ -29,6 +33,7 @@ table {
 .woocommerce-cart .cart_item .product-price {
     position: relative;
     min-height: 60px;
+    font-size: var(--font-size-cart-item) !important;
 }
 
 /* Precio del marco siempre abajo */
@@ -39,6 +44,8 @@ table {
     width: 100%;
     padding-top: 2px;
     z-index: 2;
+    font-size: var(--font-size-cart-item) !important;
+
 }
 
 @media (max-width: 768px) {
@@ -50,5 +57,13 @@ table {
 @media (max-width: 480px) {
     .woocommerce-cart .cart_item .product-price .precio-marco {
         display: none;
+    }
+
+    .woocommerce-cart .cart_item .product-name {
+        font-size: var(--font-size-cart-item) !important;
+    }
+
+    .woocommerce-cart .cart_item .subtotal-base, .woocommerce-cart .cart_item .subtotal-marco {
+        font-size: var(--font-size-cart-item) !important;
     }
 }

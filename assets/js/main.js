@@ -307,6 +307,12 @@ function initializeViewerForSwiper() {
 }
 
 function toggleFrameOptions(show) {
+  // Verificar si hay imágenes subidas antes de mostrar las opciones de marco
+  if (show && uploadedImagesData.length === 0) {
+    showNotification("Por favor, sube al menos una imagen antes de seleccionar un marco.", "error");
+    return;
+  }
+
   document.getElementById("frame-ios-picker-wrapper").style.display = show
     ? "block"
     : "none";

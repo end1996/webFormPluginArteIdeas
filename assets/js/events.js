@@ -31,11 +31,8 @@ function cambioCantidad(){
 
 function calcularPrecioMarco(price) {
 
-    console.log(priceDimensionsBaseMain)
     marcoSeleccionado = price;
     window.marcoSeleccionado = marcoSeleccionado; // Enviar el precio del marco seleccionado a main.js
-
-    //alert(marcoSeleccionado)
 
     let precioDimensiones = parseFloat(priceDimensionsBaseMain);
 
@@ -76,14 +73,24 @@ function reiniciarPrecioMarco() {
 
 // EVENTO VOLVER AL PRECIO ORIGINAL AL SELECCIONAR SIN MARCOS ----------------------------------------------------------------------------
 
+// ... existing code ...
 function calcularPrecioSinMarco() {
-    document.getElementById('total-price-button').innerHTML = 'S/. ' + priceDimensionsBaseMain;
+    // Asegurarse de que priceDimensionsBaseMain tenga un valor válido
+    if (priceDimensionsBaseMain === null) {
+        document.getElementById('total-price-button').innerHTML = 'S/. 0.00';
+    } else {
+        document.getElementById('total-price-button').innerHTML = 'S/. ' + priceDimensionsBaseMain;
+    }
 
+    // Remover la selección de todos los marcos
     document.querySelectorAll('.swiper-slide.selected').forEach(el => {
         el.classList.remove('selected');
     });
 
+    // Reiniciar el precio del marco
     marcoSeleccionado = 0;
+    window.marcoSeleccionado = 0; // Asegurarse de que también se actualice en el ámbito global
 }
+// ... existing code ...
 
 // EVENTO VOLVER AL PRECIO ORIGINAL AL SELECCIONAR SIN MARCOS ----------------------------------------------------------------------------

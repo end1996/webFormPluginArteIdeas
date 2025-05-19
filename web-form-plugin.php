@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.2.8
+Version: 3.2.9
 Author: Enmanuel
 */
 
@@ -49,8 +49,8 @@ function web_form_shortcode()
     wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.5', true);
 
     // Cargar JS
-    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.8.5', true);
-    wp_enqueue_script('events-js', plugin_dir_url(__FILE__) . 'assets/js/events.js', array('jquery'), '1.0.4', true);
+    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.8.6', true);
+    wp_enqueue_script('events-js', plugin_dir_url(__FILE__) . 'assets/js/events.js', array('jquery'), '1.0.5', true);
     wp_enqueue_script('requestHttp-js', plugin_dir_url(__FILE__) . 'assets/js/requestHttp.js', array('jquery'), '1.0.3', true);
 
     // Cargar Swiper JS desde CDN (depende de jQuery)
@@ -112,7 +112,7 @@ function process_print_image_to_cart()
     $frame_price = isset($_POST['frame_price']) ? floatval($_POST['frame_price']) : 0.0;
 
     // ID DEL PRODUCTO
-    $product_id = get_option('print_image_product_id', 159);
+    $product_id = get_option('print_image_product_id', 244);
     if (!$product_id || !wc_get_product($product_id)) {
         error_log('Error: No se ha configurado un producto base para impresiones');
         wp_send_json_error('No se ha configurado un producto base para impresiones');
@@ -447,7 +447,7 @@ function load_cart_page_styles()
 {
     // Cargar solo en la página del carrito
     if (is_cart()) {
-        wp_enqueue_style('cart-page-css', plugin_dir_url(__FILE__) . 'assets/css/cart-page-style.css', array(), '1.0.4');
+        wp_enqueue_style('cart-page-css', plugin_dir_url(__FILE__) . 'assets/css/cart-page-style.css', array(), '1.0.5');
     }
 }
 add_action('wp_enqueue_scripts', 'load_cart_page_styles');
