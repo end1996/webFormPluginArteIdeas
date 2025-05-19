@@ -37,9 +37,6 @@ table {
     left: 0;
     bottom: 40px;
     width: 100%;
-    color: #666;
-    font-weight: bold;
-    background: #fff;
     padding-top: 2px;
     z-index: 2;
 }

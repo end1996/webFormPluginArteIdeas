@@ -716,7 +716,7 @@ function addToCart() {
     );
     frame = selectedFrameElement ? currentSelectedFrame : "Sin marco";
     // marcoSeleccionado viene de events.js y tiene el precio del marco seleccionado
-    frame_price = window.marcoSeleccionado !== "undefined" ? parseFloat(window.marcoSeleccionado) : 0;
+    frame_price = window.marcoSeleccionado; 
   }
 
   if (typeof ajax_object === "undefined") {
@@ -746,20 +746,6 @@ function addToCart() {
   formData.append("comments", comments);
   formData.append("frame", frame);
   formData.append("frame_price", frame_price);
-
-  alert(
-    formData.get("action") + "\n" +
-    formData.get("nonce") + "\n" +
-    formData.get("quantity") + "\n" +
-    formData.get("size") + "\n" +
-    formData.get("variation_id") + "\n" +
-    formData.get("price") + "\n" +
-    formData.get("is_custom_size") + "\n" +
-    formData.get("custom_width") + "\n" +
-    formData.get("custom_height") + "\n" +
-    formData.get("comments") + "\n" +
-    formData.get("frame") + "\n"
-  );
 
   // Agregar todas las imágenes como image_data[]
   uploadedImagesData.forEach((imageData, idx) => {

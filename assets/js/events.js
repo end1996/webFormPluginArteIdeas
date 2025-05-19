@@ -1,6 +1,6 @@
 let priceParam = 0;
 let priceBase = 'base';
-let marcoSeleccionado = null;
+let marcoSeleccionado = 0; // 0 es el precio del marco sin seleccionar
 priceDimensionsBaseMain = null;
 
 
@@ -33,6 +33,7 @@ function calcularPrecioMarco(price) {
 
     console.log(priceDimensionsBaseMain)
     marcoSeleccionado = price;
+    window.marcoSeleccionado = marcoSeleccionado; // Enviar el precio del marco seleccionado a main.js
 
     //alert(marcoSeleccionado)
 
