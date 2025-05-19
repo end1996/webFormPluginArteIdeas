@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.2.9
+Version: 3.3.0
 Author: Enmanuel
 */
 
@@ -585,9 +585,12 @@ add_filter('login_redirect', function ($redirect_to, $request, $user) {
 }, 10, 3);
 
 add_filter('woocommerce_cart_item_price', function ($price_html, $cart_item, $cart_item_key) {
-    // Precio del marco (alineado con el metadato "Marco")
-    if (!empty($cart_item['frame']) && $cart_item['frame'] !== 'sin-marco' && !empty($cart_item['frame_price'])) {
-        $price_html .= '<div class="precio-marco" style="margin-top:4px;">' . wc_price(floatval($cart_item['frame_price'])) . '</div>';
+    if (defined('DOING_AJAX') && DOING_AJAX && isset($_POST['action']) && $_POST['action'] === 'woocommerce_get_refreshed_fragments') {
+        // Si hay precio de marco, solo muestra el precio base
+        if (!empty($cart_item['frame_price']) && $cart_item['frame'] !== 'sin-marco') {
+            $base_price = $cart_item['data']->get_price();
+            return wc_price($base_price);
+        }
     }
     return $price_html;
 }, 10, 3);
