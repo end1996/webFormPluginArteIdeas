@@ -679,6 +679,7 @@ function addToCart() {
   const isCustomSize = selectedOptionSize == "custom";
 
   let size, customWidth, customHeight, pricePerUnit;
+  let variation_id = 0;
   if (isCustomSize) {
     customWidth = document.getElementById("custom-size__width").value;
     customHeight = document.getElementById("custom-size__height").value;
@@ -689,19 +690,25 @@ function addToCart() {
     size = `${customWidth}X${customHeight}`;
     pricePerUnit = parseInt(customHeight) * parseInt(customWidth) * 0.03;
     pricePerUnit = Math.round(pricePerUnit);
+    // Usar el custom_variation_id de la dimensión personalizada
+    if (window.customDimensionObj && window.customDimensionObj.custom_variation_id) {
+      variation_id = window.customDimensionObj.custom_variation_id;
+    } else if (typeof customDimensionObj !== 'undefined' && customDimensionObj && customDimensionObj.custom_variation_id) {
+      variation_id = customDimensionObj.custom_variation_id;
+    } else {
+      variation_id = 0;
+    }
   } else {
     size = sizePicker.getValue();
     pricePerUnit = getSelectedSizePrice();
+    // Obtener variation_id para tamaños estándar
+    const quantityInt = parseInt(quantity) || 1;
+    const currentVariationObj = getCurrentRangeObject(dimension_precio_data, quantityInt);
+    if (currentVariationObj && currentVariationObj[size]) {
+      variation_id = currentVariationObj[size];
+    }
   }
   console.log("🚀 pricePerUnit", pricePerUnit);
-
-  // --- OBTENER VARIATION_ID SEGÚN LA LÓGICA DE dimension_precio_data ---
-  const quantityInt = parseInt(quantity) || 1;
-  const currentVariationObj = getCurrentRangeObject(dimension_precio_data, quantityInt);
-  let variation_id = 0;
-  if (currentVariationObj && currentVariationObj[size]) {
-    variation_id = currentVariationObj[size];
-  }
   console.log("🆔 variation_id seleccionado:", variation_id);
 
   // Validar que el campo de comentarios no esté vacío

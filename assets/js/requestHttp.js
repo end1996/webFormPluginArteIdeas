@@ -1,6 +1,7 @@
 // PETICIONES HTTP --------------------------------------------------------------------------------------------------------
 
 // DIMENSIONES | PRECIOS ---------------------------------------
+let customDimensionObj = null; // Variable global para la dimensión personalizada
 const getDimensions = async () => {
     try {
 
@@ -18,7 +19,11 @@ const getDimensions = async () => {
         const dimensiones = dimensionsData.custom_dimensions_data;
         const precios = priceData.price_data;
 
-        dimensiones.forEach(dimension => {
+        // Guardar la dimensión personalizada y filtrar del array
+        customDimensionObj = dimensiones.find(d => d.is_custom);
+        const dimensionesFiltradas = dimensiones.filter(d => !d.is_custom);
+
+        dimensionesFiltradas.forEach(dimension => {
             const key = `${dimension.width}X${dimension.height}`;
 
             precios.forEach(precio => {
