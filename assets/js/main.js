@@ -69,7 +69,6 @@ function initializeSizePicker() {
   // Escuchar cambios en cantidad
   quantityInput.addEventListener("input", function () {
     const quantity = parseInt(this.value) || 1;
-    console.log(`Cantidad ingresada: ${quantity}`);
     updateSizeOptions(quantity);
   });
 }
@@ -522,9 +521,7 @@ function getMinimumPixelsForImage(size) {
 // Nueva función para validar imágenes con tamaños personalizados
 function validateImagesWithCustomSize(customWidth, customHeight) {
   const minWidth = customWidth * PIXELS_PER_CM; // Ancho mínimo en píxeles
-  console.log(`Ancho mínimo: ${minWidth}`);
   const minHeight = customHeight * PIXELS_PER_CM; // Alto mínimo en píxeles
-  console.log(`Alto mínimo: ${minHeight}`);
   const lowQualityIndexes = []; // Índices de imágenes de baja calidad
 
   // Recorre las imágenes subidas
@@ -644,9 +641,6 @@ function revalidateImagesWithNewSize(newSize) {
 }
 
 function getSelectedSizePrice() {
-  if (initializeSizePicker) {
-    console.log("🚀 initializeSizePicker() fue llamada correctamente");
-  }
   selectedSize = sizePicker.getValue(); // Obtener el tamaño seleccionado
   return currentSizePrices[selectedSize] || 0; // Retornar el precio correspondiente
 }
@@ -667,11 +661,9 @@ function getCurrentRangeObject(obj, quantity) {
 
 // Función para añadir al carrito - Modificada para procesar múltiples imágenes de forma secuencial
 function addToCart() {
-  console.log("🚀 addToCart() fue llamada correctamente");
 
   if (uploadedImagesData.length === 0) {
     showNotification("Por favor, sube al menos una imagen primero.", "error");
-    console.log("⚠️ No hay imágenes subidas.");
     return;
   }
 
@@ -708,8 +700,6 @@ function addToCart() {
       variation_id = currentVariationObj[size];
     }
   }
-  console.log("🚀 pricePerUnit", pricePerUnit);
-  console.log("🆔 variation_id seleccionado:", variation_id);
 
   // Validar que el campo de comentarios no esté vacío
   const comments = document.querySelector(".comment-area").value.trim();
@@ -866,9 +856,6 @@ function showNotification(message, type = "info") {
   notification.className = `notification ${type}`;
   notification.textContent = message;
   document.body.appendChild(notification);
-
-  // Agregar el mensaje al log de la consola
-  console.log(`[${type.toUpperCase()}] ${message}`);
 
   setTimeout(() => notification.classList.add("show"), 10);
   setTimeout(() => {

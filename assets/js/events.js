@@ -50,11 +50,7 @@ document.getElementById("size-picker").addEventListener("click", function (e) {
             let priced = parseFloat( priceDimensionsBaseMain );
             let pricem = parseFloat( marcoSeleccionado );
 
-            console.log("precio dimension: " + priced + "\nprecio marco: " + pricem)
-
             let btnTotalPrice = ( pricem + priced ).toFixed(2);
-
-            console.log("precio total: "+ btnTotalPrice)
 
             document.getElementById('total-price-button').innerText = `S/. ${ btnTotalPrice }`;
         }
