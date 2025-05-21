@@ -402,15 +402,6 @@ function handleFiles(e) {
     customHeight = parseInt(
       document.getElementById("custom-size__height").value
     );
-
-    // Si los valores personalizados no son válidos, muestra una advertencia y detiene el proceso
-    if (isNaN(customWidth) || isNaN(customHeight)) {
-      showNotification(
-        "Por favor, ingresa un ancho y alto válidos para el tamaño personalizado.",
-        "error"
-      );
-      return;
-    }
   }
 
   const lowQualityIndexes = []; // Array para almacenar índices de imágenes de baja calidad
@@ -919,8 +910,9 @@ function updateTotalPrice() {
       ).innerText = `S/. ${totalPrice.toFixed(2)}`;
       return;
     } else {
+      // Si los campos están vacíos o son cero, mostrar precio cero
       document.getElementById("total-price-button").innerText = `S/. 0.00`;
-      return;
+      priceDimensionsBaseMain = 0;
     }
   } else {
     //Si se utilice los pickers

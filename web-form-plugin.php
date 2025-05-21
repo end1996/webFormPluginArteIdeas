@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.3.2
+Version: 3.3.3
 Author: Enmanuel
 */
 
@@ -49,7 +49,7 @@ function web_form_shortcode()
     wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.5', true);
 
     // Cargar JS
-    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.8.8', true);
+    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.8.9', true);
     wp_enqueue_script('events-js', plugin_dir_url(__FILE__) . 'assets/js/events.js', array('jquery'), '1.0.6', true);
     wp_enqueue_script('requestHttp-js', plugin_dir_url(__FILE__) . 'assets/js/requestHttp.js', array('jquery'), '1.0.4', true);
 
@@ -461,6 +461,14 @@ function load_custom_checkout_script()
     }
 }
 add_action('wp', 'load_custom_checkout_script');
+
+function load_custom_lost_password_page() {
+    if (is_wc_endpoint_url('lost-password')) {
+        wp_enqueue_style('lost-password-page-css', plugin_dir_url(__FILE__) . 'assets/css/lost-password-page-style.css', array(), '1.0.0');
+    }
+}
+add_action('wp_enqueue_scripts', 'load_custom_lost_password_page');
+
 // Contenido de la página de configuración
 function print_image_settings_page_content()
 {
