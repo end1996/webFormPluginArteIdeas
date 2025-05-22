@@ -51,6 +51,52 @@ function customizar_checkout_woocommerce($fields) {
     return $fields;
 }
 
+// Solución completa para Perú y Chile
+add_filter('woocommerce_default_address_fields', 'personalizar_etiquetas_region_latam');
+
+function personalizar_etiquetas_region_latam($fields) {
+    // Obtener el país seleccionado (si hay)
+    $country = isset(WC()->customer) ? WC()->customer->get_billing_country() : '';
+    
+    // Cambiar dinámicamente según el país
+    if ($country === 'PE') {
+        $fields['state']['label'] = 'Departamento';
+        $fields['city']['label'] = 'Distrito';
+    } elseif ($country === 'CL') {
+        $fields['state']['label'] = 'Región';
+        $fields['city']['label'] = 'Comuna';
+    }
+    
+    return $fields;
+}
+
+// Para que funcione con actualizaciones en tiempo real
+add_action('wp_footer', 'actualizar_etiquetas_region_js');
+function actualizar_etiquetas_region_js() {
+    if (!is_checkout()) return;
+    ?>
+    <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            // Función para cambiar la etiqueta
+            function actualizarEtiquetaRegion() {
+                var pais = $('#billing_country').val();
+                if (pais === 'PE') {
+                    $('label[for="billing_state"]').text('Departamento');
+                    $('label[for="billing_city"]').text('Distrito');
+                } else if (pais === 'CL') {
+                    $('label[for="billing_state"]').text('Región');
+                    $('label[for="billing_city"]').text('Comuna');
+                }
+            }
+            
+            // Ejecutar al cargar y cuando cambie el país
+            actualizarEtiquetaRegion();
+            $('#billing_country').change(actualizarEtiquetaRegion);
+        });
+    </script>
+    <?php
+}
+
 // ==============================================
 // 2. Validaciones en PHP (backend)
 // ==============================================
