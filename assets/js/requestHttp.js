@@ -23,6 +23,17 @@ const getDimensions = async () => {
         customDimensionObj = dimensiones.find(d => d.is_custom);
         const dimensionesFiltradas = dimensiones.filter(d => !d.is_custom);
 
+        // ORDENAR WIDTH
+        dimensionesFiltradas.sort((a, b) => a.width - b.width);
+
+        // ORDENAR HEIGHT SI LOS WIDTH SON IGUALES
+        dimensionesFiltradas.sort((a, b) => {
+            if (a.width === b.width) {
+                return a.height - b.height;
+            }
+            return a.width - b.width;
+        });
+
         dimensionesFiltradas.forEach(dimension => {
             const key = `${dimension.width}X${dimension.height}`;
 
