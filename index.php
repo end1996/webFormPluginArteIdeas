@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+       
+    </style>
 </head>
 
 <body>
@@ -52,7 +55,17 @@
                 </div>
             </div>
             <div id="standard-sizes" class="ios-picker-container" style="display: block;">
-                <div id="size-picker"></div> <!-- Contenedor para el iOSPicker -->
+                <!-- Placeholder que se mostrará mientras carga el iOS picker -->
+                <div class="picker-placeholder placeholder-glow" id="size-picker-placeholder" style="display: none;">
+                    <div class="placeholder placeholder-75"></div>
+                    <div class="placeholder placeholder-50"></div>
+                    <div class="placeholder placeholder-75"></div>
+                    <div class="placeholder placeholder-25"></div>
+                    <div class="placeholder placeholder-50"></div>
+                </div>
+                <div id="size-picker">
+                    <!-- Contenedor para el iOSPicker -->
+                </div>
             </div>
 
             <div id="custom-size" class="custom-size" style="display: none;">
@@ -66,14 +79,16 @@
         <div class="section-title">
             Indicaciones de impresión
         </div>
-        
-        <textarea class="comment-area" placeholder=" Escribe aquí tus comentarios..." maxlength="255" required></textarea>
+
+        <textarea class="comment-area" placeholder=" Escribe aquí tus comentarios..." maxlength="255"
+            required></textarea>
     </div>
 
     <div class="section">
         <div class="section-title">
             <div class="radio-group">
-                <input id='noFrame' type="radio" name="frame" class="radio-input" checked onclick="toggleFrameOptions(false); calcularPrecioSinMarco()">
+                <input id='noFrame' type="radio" name="frame" class="radio-input" checked
+                    onclick="toggleFrameOptions(false); calcularPrecioSinMarco()">
                 <label class="radio-label">Sin marco</label>
                 <input type="radio" name="frame" class="radio-input" onclick="toggleFrameOptions(true)">
                 <label class="radio-label">Con marco</label>
@@ -104,7 +119,8 @@
 <script type="module">
     window.siteUrl = '<?php echo home_url() ?>';
     console.log(window.siteUrl);
-    
-    getFrames( '<?php echo plugin_dir_url(__FILE__); ?>' );
+
+    getFrames('<?php echo plugin_dir_url(__FILE__); ?>');
 </script>
+
 </html>

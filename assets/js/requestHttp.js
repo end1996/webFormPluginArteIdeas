@@ -3,80 +3,94 @@
 // DIMENSIONES | PRECIOS ---------------------------------------
 let customDimensionObj = null; // Variable global para la dimensión personalizada
 const getDimensions = async () => {
-    try {
+  try {
+    // Mostrar placeholder antes de hacer la petición
+    showSizePickerPlaceholder();
 
-        //if ( siteUrl == null || siteUrl == undefined ) { return; }
+    //if ( siteUrl == null || siteUrl == undefined ) { return; }
 
-        const responseDimensions = await fetch(window.siteUrl+'/wp-json/api/v1/dimensiones');
-        const responsePrice = await fetch(window.siteUrl+'/wp-json/api/v1/dimensiones_precio');
+    const responseDimensions = await fetch(
+      window.siteUrl + "/wp-json/api/v1/dimensiones"
+    );
+    const responsePrice = await fetch(
+      window.siteUrl + "/wp-json/api/v1/dimensiones_precio"
+    );
 
-        if (!responseDimensions.ok || !responsePrice.ok ) {
-            throw new Error(`Error HTTP: ${response.status}`);
-        }
-
-        const dimensionsData = await responseDimensions.json();
-        const priceData = await responsePrice.json();
-        const dimensiones = dimensionsData.custom_dimensions_data;
-        const precios = priceData.price_data;
-
-        // Guardar la dimensión personalizada y filtrar del array
-        customDimensionObj = dimensiones.find(d => d.is_custom);
-        const dimensionesFiltradas = dimensiones.filter(d => !d.is_custom);
-
-        // ORDENAR WIDTH
-        dimensionesFiltradas.sort((a, b) => a.width - b.width);
-
-        // ORDENAR HEIGHT SI LOS WIDTH SON IGUALES
-        dimensionesFiltradas.sort((a, b) => {
-            if (a.width === b.width) {
-                return a.height - b.height;
-            }
-            return a.width - b.width;
-        });
-
-        dimensionesFiltradas.forEach(dimension => {
-            const key = `${dimension.width}X${dimension.height}`;
-
-            precios.forEach(precio => {
-                if (precio.dimension_id == dimension.id) {
-                    if (!precios_por_cantidad[precio.quantity] ) precios_por_cantidad[precio.quantity] = {};
-                    if (!dimension_precio_data[precio.quantity] ) dimension_precio_data[precio.quantity] = {};
-
-                    precios_por_cantidad[precio.quantity][key] = precio.price;
-                    dimension_precio_data[precio.quantity][key] = precio.variation_id;
-                }
-            });
-        });
-        
-        initializeSizePicker();
-        console.log("Picker inicializado");
-        
-
-    } catch (error) {
-        console.error("Error al obtener dimensiones:", error);
+    if (!responseDimensions.ok || !responsePrice.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
     }
-}
+
+    const dimensionsData = await responseDimensions.json();
+    const priceData = await responsePrice.json();
+    const dimensiones = dimensionsData.custom_dimensions_data;
+    const precios = priceData.price_data;
+
+    // Guardar la dimensión personalizada y filtrar del array
+    customDimensionObj = dimensiones.find((d) => d.is_custom);
+    const dimensionesFiltradas = dimensiones.filter((d) => !d.is_custom);
+
+    // ORDENAR WIDTH
+    dimensionesFiltradas.sort((a, b) => a.width - b.width);
+
+    // ORDENAR HEIGHT SI LOS WIDTH SON IGUALES
+    dimensionesFiltradas.sort((a, b) => {
+      if (a.width === b.width) {
+        return a.height - b.height;
+      }
+      return a.width - b.width;
+    });
+
+    dimensionesFiltradas.forEach((dimension) => {
+      const key = `${dimension.width}X${dimension.height}`;
+
+      precios.forEach((precio) => {
+        if (precio.dimension_id == dimension.id) {
+          if (!precios_por_cantidad[precio.quantity])
+            precios_por_cantidad[precio.quantity] = {};
+          if (!dimension_precio_data[precio.quantity])
+            dimension_precio_data[precio.quantity] = {};
+
+          precios_por_cantidad[precio.quantity][key] = precio.price;
+          dimension_precio_data[precio.quantity][key] = precio.variation_id;
+        }
+      });
+    });
+
+    // Tu código para inicializar el iOS picker
+    await initializeSizePicker();
+    
+    // Ocultar placeholder cuando el picker esté listo
+    hideSizePickerPlaceholder();
+    
+  } catch (error) {
+    console.error("Error al obtener dimensiones:", error);
+    
+    // En caso de error, también ocultar el placeholder
+    hideSizePickerPlaceholder();
+  }
+};
 
 // MARCOS --------------------------------------------
-const getFrames = async ( url ) => {
-    try{
+const getFrames = async (url) => {
+  try {
+    // Opcional: también puedes agregar placeholder para los marcos si lo necesitas
+    // showFramePickerPlaceholder(); // Si implementas placeholder para marcos
 
-        //if ( urlGeneral == null || siteUrl == undefined ) { return; }
+    //if ( urlGeneral == null || siteUrl == undefined ) { return; }
 
-        const response = await fetch(window.siteUrl+'/wp-json/api/v1/marcos');
+    const response = await fetch(window.siteUrl + "/wp-json/api/v1/marcos");
 
-        if (!response.ok) {
-            throw new Error(`Error HTTP: ${response.status}`);
-        }
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
 
-        let html = '';
-        const framesData = await response.json();
-        const frames = framesData.frames_data;
-        let i = 1;
+    let html = "";
+    const framesData = await response.json();
+    const frames = framesData.frames_data;
+    let i = 1;
 
-        frames.forEach(marco => {
-
-            html+= `
+    frames.forEach((marco) => {
+      html += `
                 <div class="swiper-slide" data-value="frame${i}" onclick="calcularPrecioMarco(${marco.price})">
                     <img src="${url}assets/frames/${marco.frame_img}" alt="${marco.frame_type}">
                     <button class="zoom-icon-btn">
@@ -87,17 +101,21 @@ const getFrames = async ( url ) => {
                     </button>
                     <p class="price">S/. ${marco.price}</p>
                 </div>
-            `
-            i++;
-            
-        });
+            `;
+      i++;
+    });
 
-        document.getElementById('frame-picker').innerHTML = html;
+    document.getElementById("frame-picker").innerHTML = html;
 
-        initializeFramePicker();
-        console.log("Picker de marcos inicializado");
-    } catch (error) {
-        console.error("Error al obtener los marcos:", error);
-    }
-}
+    await initializeFramePicker();
+    
+    // hideFramePickerPlaceholder(); // Si implementas placeholder para marcos
+
+  } catch (error) {
+    console.error("Error al obtener los marcos:", error);
+    // hideFramePickerPlaceholder(); // En caso de error
+  }
+};
+
 // PETICIONES HTTP --------------------------------------------------------------------------------------------------------
+

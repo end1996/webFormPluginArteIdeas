@@ -1,0 +1,82 @@
+ /* Placeholder con efecto glow */
+ .placeholder {
+    background-color: #e9ecef;
+    border-radius: 4px;
+    display: inline-block;
+    height: 1.25rem;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.placeholder-glow .placeholder {
+    animation: placeholder-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes placeholder-glow {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Variantes de tamaño */
+.placeholder-xs {
+    height: 0.75rem;
+}
+
+.placeholder-sm {
+    height: 1rem;
+}
+
+.placeholder-lg {
+    height: 1.5rem;
+}
+
+.placeholder-xl {
+    height: 2rem;
+}
+
+/* Variantes de ancho */
+.placeholder-25 {
+    width: 25%;
+}
+
+.placeholder-50 {
+    width: 50%;
+}
+
+.placeholder-75 {
+    width: 75%;
+}
+
+.placeholder-100 {
+    width: 100%;
+}
+
+/* Formas especiales */
+.placeholder-circle {
+    border-radius: 50%;
+    width: 3rem;
+    height: 3rem;
+}
+
+.placeholder-rounded {
+    border-radius: 50rem;
+}
+
+/* Estilos específicos para el picker placeholder */
+.picker-placeholder {
+    padding: 20px;
+    text-align: center;
+}
+
+.picker-placeholder .placeholder {
+    margin: 8px auto;
+}
