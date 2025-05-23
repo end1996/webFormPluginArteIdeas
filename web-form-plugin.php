@@ -443,7 +443,7 @@ function load_cart_handler_script()
 {
     // Solo cargar en páginas que contengan el carrito
     if (is_cart() || is_checkout() || is_product()) {
-        wp_enqueue_script('cart-handler-js', plugin_dir_url(__FILE__) . 'cart-handler.js', array('jquery', 'wc-cart'), '1.0.0', true);
+        wp_enqueue_script('cart-handler-js', plugin_dir_url(__FILE__) . 'assets/js/cart-handler.js', array('jquery', 'wc-cart'), '1.0.1', true);
     }
 }
 add_action('wp_enqueue_scripts', 'load_cart_handler_script');
