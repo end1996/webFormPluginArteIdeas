@@ -1,0 +1,15 @@
+li {
+    padding-left: 10px;
+}
+
+.woocommerce-thankyou-order-received {
+    padding: 5px 10px !important;
+}
+
+.woocommerce-thankyou-order-details {
+    padding: 0 !important;
+}
+
+.shop_table.order_details, .shop_table.woocommerce-MyAccount-orders {
+    padding: 5px 10px !important;
+}

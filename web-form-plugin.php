@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.3.5
+Version: 3.3.6
 Author: Enmanuel
 */
 
@@ -447,10 +447,17 @@ function load_cart_page_styles()
 {
     // Cargar solo en la página del carrito
     if (is_cart()) {
-        wp_enqueue_style('cart-page-css', plugin_dir_url(__FILE__) . 'assets/css/cart-page-style.css', array(), '1.0.5');
+        wp_enqueue_style('cart-page-css', plugin_dir_url(__FILE__) . 'assets/css/cart-page-style.css', array(), '1.0.7');
     }
 }
 add_action('wp_enqueue_scripts', 'load_cart_page_styles');
+
+function load_order_details_styles() {
+    if (is_order_received_page()) {
+        wp_enqueue_style('order-details-css', plugin_dir_url(__FILE__) . 'assets/css/order-details-style.css', array(), '1.0.0');
+    }
+}
+add_action('wp_enqueue_scripts', 'load_order_details_styles');
 
 // Cargar custom-checkout.php SOLO en la página de checkout
 function load_custom_checkout_script()
@@ -603,20 +610,20 @@ add_filter('woocommerce_cart_item_price', function ($price_html, $cart_item, $ca
     return $price_html;
 }, 10, 3);
 
-add_filter('woocommerce_cart_item_subtotal', function ($subtotal, $cart_item, $cart_item_key) {
-    if (!empty($cart_item['frame_price']) && $cart_item['frame'] !== 'sin-marco') {
-        $frame_price = floatval($cart_item['frame_price']);
-        $quantity = isset($cart_item['quantity']) ? $cart_item['quantity'] : 1;
-        $base_subtotal = wc_price($cart_item['data']->get_price() * $quantity);
-        $frame_subtotal = wc_price($frame_price * $quantity);
-        $total = ($cart_item['data']->get_price() + $frame_price) * $quantity;
-        $total_html = wc_price($total);
-        $subtotal = '<div class="subtotal-base">' . $base_subtotal . '</div>';
-        $subtotal .= '<div class="subtotal-marco" style="color:#666;">+ Marco: <strong>' . $frame_subtotal . '</strong></div>';
-        //$subtotal .= '<div class="subtotal-total" style="margin-top:4px;font-weight:bold;">Total: ' . $total_html . '</div>';
-    }
-    return $subtotal;
-}, 10, 3);
+// add_filter('woocommerce_cart_item_subtotal', function ($subtotal, $cart_item, $cart_item_key) {
+//     if (!empty($cart_item['frame_price']) && $cart_item['frame'] !== 'sin-marco') {
+//         $frame_price = floatval($cart_item['frame_price']);
+//         $quantity = isset($cart_item['quantity']) ? $cart_item['quantity'] : 1;
+//         $base_subtotal = wc_price($cart_item['data']->get_price() * $quantity);
+//         $frame_subtotal = wc_price($frame_price * $quantity);
+//         $total = ($cart_item['data']->get_price() + $frame_price) * $quantity;
+//         $total_html = wc_price($total);
+//         $subtotal = '<div class="subtotal-base">' . $base_subtotal . '</div>';
+//         $subtotal .= '<div class="subtotal-marco" style="color:#666;">+ Marco: <strong>' . $frame_subtotal . '</strong></div>';
+//         //$subtotal .= '<div class="subtotal-total" style="margin-top:4px;font-weight:bold;">Total: ' . $total_html . '</div>';
+//     }
+//     return $subtotal;
+// }, 10, 3);
 
 add_action('woocommerce_cart_calculate_fees', function ($cart) {
     if (is_admin() && !defined('DOING_AJAX')) {
