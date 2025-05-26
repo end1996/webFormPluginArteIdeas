@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.3.8
+Version: 3.3.9
 Author: Enmanuel
 */
 
@@ -37,7 +37,7 @@ function web_form_shortcode()
     $picker_path = plugin_dir_url(__FILE__) . 'assets/js/ios-picker.js';
 
     // Cargar CSS
-    wp_enqueue_style('web-form-styles', $css_path, array(), '5.3.0');
+    wp_enqueue_style('web-form-styles', $css_path, array(), '5.3.1');
 
     wp_enqueue_style('picker-placeholder-css', plugin_dir_url(__FILE__) . 'assets/css/placeholder-loader.css', array(), '1.0.0');
 
@@ -417,7 +417,7 @@ function load_cart_handler_script()
 {
     // Solo cargar en páginas que contengan el carrito
     if (is_cart() || is_checkout() || is_product()) {
-        wp_enqueue_script('cart-handler-js', plugin_dir_url(__FILE__) . 'assets/js/cart-handler.js', array('jquery', 'wc-cart'), '1.0.1', true);
+        wp_enqueue_script('cart-handler-js', plugin_dir_url(__FILE__) . 'assets/js/cart-handler.js', array('jquery', 'wc-cart'), '1.0.2', true);
     }
 }
 add_action('wp_enqueue_scripts', 'load_cart_handler_script');
@@ -431,19 +431,21 @@ function load_cart_page_styles()
 }
 add_action('wp_enqueue_scripts', 'load_cart_page_styles');
 
-function load_order_details_styles() {
+function load_order_details_styles()
+{
     if (is_order_received_page()) {
         wp_enqueue_style('order-details-css', plugin_dir_url(__FILE__) . 'assets/css/order-details-style.css', array(), '1.0.0');
     }
 }
 add_action('wp_enqueue_scripts', 'load_order_details_styles');
 
-function load_checkout_page_styles() {
+function load_checkout_page_styles()
+{
     if (is_checkout()) {
         wp_enqueue_style('checkout-page-css', plugin_dir_url(__FILE__) . 'assets/css/checkout-page-style.css', array(), '1.0.0');
     }
 }
-add_action('wp_enqueue_scripts','load_checkout_page_styles');
+add_action('wp_enqueue_scripts', 'load_checkout_page_styles');
 
 // Cargar custom-checkout.php SOLO en la página de checkout
 function load_custom_checkout_script()
@@ -455,12 +457,34 @@ function load_custom_checkout_script()
 }
 add_action('wp', 'load_custom_checkout_script');
 
-function load_custom_lost_password_page() {
+function load_custom_lost_password_page()
+{
     if (is_wc_endpoint_url('lost-password')) {
         wp_enqueue_style('lost-password-page-css', plugin_dir_url(__FILE__) . 'assets/css/lost-password-page-style.css', array(), '1.0.0');
     }
 }
 add_action('wp_enqueue_scripts', 'load_custom_lost_password_page');
+
+function cargar_custom_notifications_js()
+{
+    wp_enqueue_script(
+        'custom-notifications-js',
+        plugin_dir_url(__FILE__) . 'assets/js/custom-notifications.js',
+        array('jquery'),
+        '1.0.0',
+        true
+    );
+}
+add_action('wp_enqueue_scripts', 'cargar_custom_notifications_js');
+
+function load_custom_notifications_loading_css() {
+    wp_enqueue_style(
+        'custom-notifications-loading-css', 
+        plugin_dir_url(__FILE__) . 'assets/css/notifications-loading-styles.css', 
+        array(), '1.0.0');
+}
+
+add_action('wp_enqueue_scripts','load_custom_notifications_loading_css');
 
 // Contenido de la página de configuración
 function print_image_settings_page_content()
@@ -628,7 +652,7 @@ add_action('woocommerce_cart_calculate_fees', function ($cart) {
 });
 
 // Mostrar solo el nombre base del producto en el carrito y checkout, sin atributos ni enlaces
-add_filter('woocommerce_cart_item_name', function($product_name, $cart_item, $cart_item_key) {
+add_filter('woocommerce_cart_item_name', function ($product_name, $cart_item, $cart_item_key) {
     if (isset($cart_item['data']) && is_object($cart_item['data'])) {
         // Solo el nombre base, sin enlace ni atributos
         return esc_html($cart_item['data']->get_title());
