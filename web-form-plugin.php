@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.3.7
+Version: 3.3.8
 Author: Enmanuel
 */
 
@@ -54,7 +54,7 @@ function web_form_shortcode()
     wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.5', true);
 
     // Cargar JS
-    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.8.9', true);
+    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.9.0', true);
     wp_enqueue_script('events-js', plugin_dir_url(__FILE__) . 'assets/js/events.js', array('jquery'), '1.0.6', true);
     wp_enqueue_script('requestHttp-js', plugin_dir_url(__FILE__) . 'assets/js/requestHttp.js', array('jquery'), '1.0.7', true);
 
@@ -250,32 +250,6 @@ function display_cart_product($product_images, $cart_item, $cart_item_key)
 }
 add_filter('woocommerce_store_api_cart_item_images', 'display_cart_product', 10, 3);
 
-function reemplazar_thumbnail_por_print_image($thumbnail, $item)
-{
-    // Si $item es un integer, se asume que es el ID del item, por lo que cargamos el objeto
-    if (is_int($item)) {
-        error_log('ℹ️ Recibido ID de item: ' . $item);
-        $item = new WC_Order_Item_Product($item);
-    }
-
-    // Verificar que ahora sí es un objeto válido
-    if ($item instanceof WC_Order_Item_Product) {
-        $print_image_url = $item->get_meta('URL', true);
-        error_log('🖼️ Metadato _print_image_url: ' . $print_image_url);
-
-        if (!empty($print_image_url)) {
-            $thumbnail = '<img src="' . esc_url($print_image_url) . '" alt="Imagen personalizada" height: auto; />';
-        }
-    } else {
-        // Aún no es el objeto esperado, log más detallado
-        $tipo = is_object($item) ? get_class($item) : gettype($item);
-        error_log('⚠️ Tipo de $item inesperado después de conversión: ' . $tipo);
-    }
-
-    return $thumbnail;
-}
-add_filter('woocommerce_admin_order_item_thumbnail', 'reemplazar_thumbnail_por_print_image', 10, 2);
-
 
 // Actualizar el precio del producto en el carrito
 function update_cart_item_price($cart)
@@ -452,7 +426,7 @@ function load_cart_page_styles()
 {
     // Cargar solo en la página del carrito
     if (is_cart()) {
-        wp_enqueue_style('cart-page-css', plugin_dir_url(__FILE__) . 'assets/css/cart-page-style.css', array(), '1.0.7');
+        wp_enqueue_style('cart-page-css', plugin_dir_url(__FILE__) . 'assets/css/cart-page-style.css', array(), '1.0.8');
     }
 }
 add_action('wp_enqueue_scripts', 'load_cart_page_styles');
@@ -463,6 +437,13 @@ function load_order_details_styles() {
     }
 }
 add_action('wp_enqueue_scripts', 'load_order_details_styles');
+
+function load_checkout_page_styles() {
+    if (is_checkout()) {
+        wp_enqueue_style('checkout-page-css', plugin_dir_url(__FILE__) . 'assets/css/checkout-page-style.css', array(), '1.0.0');
+    }
+}
+add_action('wp_enqueue_scripts','load_checkout_page_styles');
 
 // Cargar custom-checkout.php SOLO en la página de checkout
 function load_custom_checkout_script()

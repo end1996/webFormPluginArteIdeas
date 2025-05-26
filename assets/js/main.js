@@ -820,11 +820,13 @@ function resetForm() {
   if (customWidthInput) customWidthInput.value = "10";
   if (customHeightInput) customHeightInput.value = "15";
 
-  // Resetear selección de marco
-  const frameInputs = document.querySelectorAll('input[name="frame"]');
-  if (frameInputs.length > 0) {
-    frameInputs[0].checked = true; // Seleccionar el primer radio button
-  }
+   // Resetear el radio input a "sin marco"
+   const noFrameRadio = document.getElementById("noFrame"); // Selecciona el radio "Sin marco"
+   if (noFrameRadio) {
+       noFrameRadio.checked = true; // Marca el radio
+       toggleFrameOptions(false); // Oculta el selector de marcos
+       calcularPrecioSinMarco(); // Asegura que el precio se actualice
+   }
 
   // Resetear el picker de tamaño
   if (sizePicker) {

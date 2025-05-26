@@ -6,25 +6,13 @@ table {
 	margin: 0;
 }
 
-ul, ol {
-    padding-left: 10px !important;
-}
-/* Order details */
-
-.woocommerce-thankyou-order-received {
-    padding-left: 5px 10px !important;
-}
-
-.woocommerce-thankyou-order-details {
-    padding: 0 !important;
-}
-
-.shop_table.order_details, .shop_table.woocommerce-MyAccount-orders {
-    padding: 5px 10px !important;
-}
-
 table.woocommerce-cart-form__contents tr.cart_item {
     padding: 0 !important;
+}
+
+/* Ocultar el botón del carrito en el carrito */
+body.woocommerce-cart .elementor-menu-cart__toggle {
+    display: none !important;
 }
 
 /* Cart totals */
