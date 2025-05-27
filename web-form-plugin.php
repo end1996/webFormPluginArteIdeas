@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.3.9
+Version: 3.4.1
 Author: Enmanuel
 */
 
@@ -33,11 +33,15 @@ function web_form_shortcode()
 
     // Ruta de a los archivos de la aplicación
     $css_path = plugin_dir_url(__FILE__) . 'assets/css/styles.css';
+    $mini_cart_js_path = plugin_dir_url(__FILE__) . 'assets/js/mini-cart-style-script.js';
     $js_path = plugin_dir_url(__FILE__) . 'assets/js/main.js';
     $picker_path = plugin_dir_url(__FILE__) . 'assets/js/ios-picker.js';
 
     // Cargar CSS
     wp_enqueue_style('web-form-styles', $css_path, array(), '5.3.1');
+
+    // Cargar Mini-Cart Style CSS
+    wp_enqueue_script('mini-cart-style-script', $mini_cart_js_path, array(), '1.0.3');
 
     wp_enqueue_style('picker-placeholder-css', plugin_dir_url(__FILE__) . 'assets/css/placeholder-loader.css', array(), '1.0.0');
 
