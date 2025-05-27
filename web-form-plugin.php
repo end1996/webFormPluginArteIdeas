@@ -477,14 +477,17 @@ function cargar_custom_notifications_js()
 }
 add_action('wp_enqueue_scripts', 'cargar_custom_notifications_js');
 
-function load_custom_notifications_loading_css() {
+function load_custom_notifications_loading_css()
+{
     wp_enqueue_style(
-        'custom-notifications-loading-css', 
-        plugin_dir_url(__FILE__) . 'assets/css/notifications-loading-styles.css', 
-        array(), '1.0.0');
+        'custom-notifications-loading-css',
+        plugin_dir_url(__FILE__) . 'assets/css/notifications-loading-styles.css',
+        array(),
+        '1.0.0'
+    );
 }
 
-add_action('wp_enqueue_scripts','load_custom_notifications_loading_css');
+add_action('wp_enqueue_scripts', 'load_custom_notifications_loading_css');
 
 // Contenido de la página de configuración
 function print_image_settings_page_content()
@@ -620,33 +623,57 @@ add_filter('woocommerce_cart_item_price', function ($price_html, $cart_item, $ca
     return $price_html;
 }, 10, 3);
 
-// add_filter('woocommerce_cart_item_subtotal', function ($subtotal, $cart_item, $cart_item_key) {
-//     if (!empty($cart_item['frame_price']) && $cart_item['frame'] !== 'sin-marco') {
-//         $frame_price = floatval($cart_item['frame_price']);
-//         $quantity = isset($cart_item['quantity']) ? $cart_item['quantity'] : 1;
-//         $base_subtotal = wc_price($cart_item['data']->get_price() * $quantity);
-//         $frame_subtotal = wc_price($frame_price * $quantity);
-//         $total = ($cart_item['data']->get_price() + $frame_price) * $quantity;
-//         $total_html = wc_price($total);
-//         $subtotal = '<div class="subtotal-base">' . $base_subtotal . '</div>';
-//         $subtotal .= '<div class="subtotal-marco" style="color:#666;">+ Marco: <strong>' . $frame_subtotal . '</strong></div>';
-//         //$subtotal .= '<div class="subtotal-total" style="margin-top:4px;font-weight:bold;">Total: ' . $total_html . '</div>';
-//     }
-//     return $subtotal;
-// }, 10, 3);
+add_filter('woocommerce_cart_item_subtotal', function ($subtotal, $cart_item, $cart_item_key) {
+    if (!empty($cart_item['frame_price']) && $cart_item['frame'] !== 'sin-marco') {
+        $frame_price = floatval($cart_item['frame_price']);
+        $quantity = isset($cart_item['quantity']) ? $cart_item['quantity'] : 1;
+        $base_subtotal = wc_price($cart_item['data']->get_price() * $quantity);
+        $frame_subtotal = wc_price($frame_price * $quantity);
+        $total = ($cart_item['data']->get_price() + $frame_price) * $quantity;
+        $total_html = wc_price($total);
+        $subtotal = '<div class="subtotal-base">' . $base_subtotal . '</div>';
+        $subtotal .= '<div class="subtotal-marco" style="color:#666;"><strong>' . $frame_subtotal . '</strong></div>';
+        //$subtotal .= '<div class="subtotal-total" style="margin-top:4px;font-weight:bold;">Total: ' . $total_html . '</div>';
+    }
+    return $subtotal;
+}, 10, 3);
 
 add_action('woocommerce_cart_calculate_fees', function ($cart) {
     if (is_admin() && !defined('DOING_AJAX')) {
         return;
     }
-    foreach ($cart->get_cart() as $cart_item) {
+
+    // Array para acumular los precios de marcos por tipo
+    $frame_totals = array();
+    $frame_quantities = array();
+
+    foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
         if (!empty($cart_item['frame_price']) && $cart_item['frame'] !== 'sin-marco') {
+            $frame_type = $cart_item['frame'];
             $frame_price = floatval($cart_item['frame_price']);
             $quantity = isset($cart_item['quantity']) ? $cart_item['quantity'] : 1;
             if ($frame_price > 0) {
-                $fee_name = 'Marco (' . esc_html($cart_item['frame']) . ')';
-                $cart->add_fee($fee_name, $frame_price * $quantity, false);
+                // Acumular por tipo de marco
+                if (!isset($frame_totals[$frame_type])) {
+                    $frame_totals[$frame_type] = 0;
+                    $frame_quantities[$frame_type] = 0;
+                }
+
+                $frame_totals[$frame_type] += $frame_price * $quantity;
+                $frame_quantities[$frame_type] += $quantity;
             }
+        }
+    }
+
+    // Agregar un fee por cada tipo de marco
+    foreach ($frame_totals as $frame_type => $total_price) {
+        if ($total_price > 0) {
+            $quantity_text = $frame_quantities[$frame_type] > 1
+            ? ' (x' .$frame_quantities[$frame_type] . ')'
+            : '';
+
+            $fee_name = 'Marco: ' . esc_html($frame_type) . $quantity_text;
+            $cart->add_fee($fee_name, $total_price, false);
         }
     }
 });
