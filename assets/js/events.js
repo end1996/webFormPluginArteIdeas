@@ -3,11 +3,9 @@ let priceBase = 'base';
 let marcoSeleccionado = 0; // 0 es el precio del marco sin seleccionar
 priceDimensionsBaseMain = null;
 
-
 // EVENTOS DE CAMBIO EN LA CANTIDAD ----------------------------------------------------------------------------------------------------------
 
 function cambioCantidad(){
-
     let cantidad = parseInt(document.getElementById('iptCantidad').value)
 
     if ( cantidad > 4 && cantidad <=12 ) {
@@ -23,6 +21,8 @@ function cambioCantidad(){
         getDimensions(0.20)
     }
 
+    // Actualizar el precio total cuando cambie la cantidad
+    updateTotalPriceWithFrame();
 }
 
 // EVENTOS DE CAMBIO EN LA CANTIDAD ----------------------------------------------------------------------------------------------------------
@@ -30,33 +30,35 @@ function cambioCantidad(){
 // EVENTO SELECCION DE MARCO PRECIO ----------------------------------------------------------------------------------------------------------
 
 function calcularPrecioMarco(price) {
-
     marcoSeleccionado = price;
     window.marcoSeleccionado = marcoSeleccionado; // Enviar el precio del marco seleccionado a main.js
+    
+    // Actualizar el precio total
+    updateTotalPriceWithFrame();
+}
 
-    let precioDimensiones = parseFloat(priceDimensionsBaseMain);
+// FUNCIÓN PARA ACTUALIZAR PRECIO TOTAL INCLUYENDO MARCO ----------------------------------------------------------------------------------------------------------
 
-    let precioTotal = (precioDimensiones + marcoSeleccionado).toFixed(2);
-
-    document.getElementById('total-price-button').innerText = `S/. ${precioTotal}`;
+function updateTotalPriceWithFrame() {
+    const quantity = parseInt(document.querySelector(".quantity-field input").value) || 1;
+    
+    let precioDimensiones = parseFloat(priceDimensionsBaseMain) || 0;
+    let precioMarco = parseFloat(marcoSeleccionado) || 0;
+    
+    // El precio total es: (precio de dimensiones + precio de marco por unidad) * cantidad
+    let precioTotal = ((precioDimensiones / quantity) + precioMarco) * quantity;
+    
+    document.getElementById('total-price-button').innerText = `S/. ${precioTotal.toFixed(2)}`;
 }
 
 // EVENTO SELECCION DE MARCO PRECIO ----------------------------------------------------------------------------------------------------------
 
 document.getElementById("size-picker").addEventListener("click", function (e) {
     if (e.target.classList.contains("carousel-item")) {
-        if ( priceDimensionsBaseMain != null && marcoSeleccionado != null ){
-
-            let priced = parseFloat( priceDimensionsBaseMain );
-            let pricem = parseFloat( marcoSeleccionado );
-
-            let btnTotalPrice = ( pricem + priced ).toFixed(2);
-
-            document.getElementById('total-price-button').innerText = `S/. ${ btnTotalPrice }`;
-        }
+        // Usar la nueva función que incluye el marco
+        updateTotalPriceWithFrame();
     }
 });
-  
   
 // EVENTO REINICIAR PRECIOS ----------------------------------------------------------------------------------------------------------
 
@@ -69,15 +71,7 @@ function reiniciarPrecioMarco() {
 
 // EVENTO VOLVER AL PRECIO ORIGINAL AL SELECCIONAR SIN MARCOS ----------------------------------------------------------------------------
 
-// ... existing code ...
 function calcularPrecioSinMarco() {
-    // Asegurarse de que priceDimensionsBaseMain tenga un valor válido
-    if (priceDimensionsBaseMain === null) {
-        document.getElementById('total-price-button').innerHTML = 'S/. 0.00';
-    } else {
-        document.getElementById('total-price-button').innerHTML = 'S/. ' + priceDimensionsBaseMain;
-    }
-
     // Remover la selección de todos los marcos
     document.querySelectorAll('.swiper-slide.selected').forEach(el => {
         el.classList.remove('selected');
@@ -86,7 +80,9 @@ function calcularPrecioSinMarco() {
     // Reiniciar el precio del marco
     marcoSeleccionado = 0;
     window.marcoSeleccionado = 0; // Asegurarse de que también se actualice en el ámbito global
+    
+    // Actualizar el precio total sin marco
+    updateTotalPriceWithFrame();
 }
-// ... existing code ...
 
 // EVENTO VOLVER AL PRECIO ORIGINAL AL SELECCIONAR SIN MARCOS ----------------------------------------------------------------------------

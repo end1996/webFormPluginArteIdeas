@@ -850,15 +850,12 @@ function updateTotalPrice() {
     return;
   }
 
-  const quantity =
-    parseInt(document.querySelector(".quantity-field input").value) || 1;
+  const quantity = parseInt(document.querySelector(".quantity-field input").value) || 1;
   let pricePerUnit = 0;
 
   if (selectedOptionSize === "custom") {
-    const width =
-      parseInt(document.getElementById("custom-size__width").value) || 0;
-    const height =
-      parseInt(document.getElementById("custom-size__height").value) || 0;
+    const width = parseInt(document.getElementById("custom-size__width").value) || 0;
+    const height = parseInt(document.getElementById("custom-size__height").value) || 0;
 
     if (width > 0 && height > 0) {
       // Primero calculamos el precio según la fórmula
@@ -867,9 +864,11 @@ function updateTotalPrice() {
       const totalPrice = pricePerUnit * quantity;
       priceDimensionsBaseMain = totalPrice.toFixed(2);
 
-      document.getElementById(
-        "total-price-button"
-      ).innerText = `S/. ${totalPrice.toFixed(2)}`;
+      // Verificar si hay marco seleccionado y agregarlo al total
+      let precioMarco = parseFloat(window.marcoSeleccionado) || 0;
+      let precioFinal = totalPrice + (precioMarco * quantity);
+
+      document.getElementById("total-price-button").innerText = `S/. ${precioFinal.toFixed(2)}`;
       return;
     } else {
       // Si los campos están vacíos o son cero, mostrar precio cero
@@ -887,10 +886,12 @@ function updateTotalPrice() {
     const totalPrice = pricePerUnit * quantity;
     priceDimensionsBaseMain = totalPrice.toFixed(2);
 
+    // Verificar si hay marco seleccionado y agregarlo al total
+    let precioMarco = parseFloat(window.marcoSeleccionado) || 0;
+    let precioFinal = totalPrice + (precioMarco * quantity);
+
     // Update total price text on button
-    document.getElementById(
-      "total-price-button"
-    ).innerText = `S/. ${totalPrice.toFixed(2)}`;
+    document.getElementById("total-price-button").innerText = `S/. ${precioFinal.toFixed(2)}`;
   }
 }
 
