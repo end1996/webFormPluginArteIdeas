@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.4.1
+Version: 3.4.2
 Author: Enmanuel
 */
 
@@ -347,9 +347,9 @@ function display_print_image_cart_item_data(
             }
         }
         // Otros datos como tamaño, marco, comentarios...
-        if (isset($cart_item['size'])) {
-            $item_data[] = array('key' => 'Tamaño', 'value' => $cart_item['size']);
-        }
+        // if (isset($cart_item['size'])) {
+        //     $item_data[] = array('key' => 'Tamaño', 'value' => $cart_item['size']);
+        // }
         if (!empty($cart_item['comments'])) {
             $item_data[] = array('key' => 'Comentarios', 'value' => $cart_item['comments']);
         }
@@ -379,9 +379,9 @@ function save_print_image_order_item_meta($item, $cart_item_key, $values, $order
         }
 
         // Guardar otros datos relacionados
-        if (isset($values['size'])) {
-            $item->add_meta_data('Tamaño', $values['size']);
-        }
+        // if (isset($values['size'])) {
+        //     $item->add_meta_data('Tamaño', $values['size']);
+        // }
         if (isset($values['frame']) && $values['frame'] !== 'sin-marco') {
             $item->add_meta_data('Marco', $values['frame']);
         }
@@ -690,3 +690,73 @@ add_filter('woocommerce_cart_item_name', function ($product_name, $cart_item, $c
     }
     return $product_name;
 }, 99, 3);
+
+// 1. Filtro principal para nombres de productos en órdenes
+add_filter('woocommerce_order_item_name', function ($product_name, $item, $is_visible = true) {
+    $product = $item->get_product();
+    if ($product && is_object($product)) {
+        // Obtener solo el nombre base del producto padre
+        if ($product->is_type('variation')) {
+            $parent_product = wc_get_product($product->get_parent_id());
+            if ($parent_product) {
+                return esc_html($parent_product->get_name());
+            }
+        }
+        return esc_html($product->get_name());
+    }
+    return $product_name;
+}, 99, 3);
+
+// 2. Filtro específico para el administrador de WooCommerce
+add_filter('woocommerce_admin_order_item_name', function ($product_name, $item) {
+    $product = $item->get_product();
+    if ($product && is_object($product)) {
+        if ($product->is_type('variation')) {
+            $parent_product = wc_get_product($product->get_parent_id());
+            if ($parent_product) {
+                return esc_html($parent_product->get_name());
+            }
+        }
+        return esc_html($product->get_name());
+    }
+    return $product_name;
+}, 99, 2);
+
+// 3. Filtro para correos electrónicos
+add_filter('woocommerce_email_order_item_name', function ($product_name, $item) {
+    $product = $item->get_product();
+    if ($product && is_object($product)) {
+        if ($product->is_type('variation')) {
+            $parent_product = wc_get_product($product->get_parent_id());
+            if ($parent_product) {
+                return esc_html($parent_product->get_name());
+            }
+        }
+        return esc_html($product->get_name());
+    }
+    return $product_name;
+}, 99, 2);
+
+// 4. Prevenir que se añadan atributos automáticamente al nombre
+add_filter('woocommerce_product_variation_title_include_attributes', '__return_false');
+
+
+add_filter('woocommerce_order_item_get_formatted_meta_data', function ($formatted_meta, $item) {
+    
+    // Lista de claves de metadatos que quieres OCULTAR
+    $keys_to_hide = array(
+        'Tamaño'
+        // Añade aquí las claves que quieras ocultar
+    );
+    
+    // Filtrar los metadatos
+    $filtered_meta = array();
+    foreach ($formatted_meta as $meta_id => $meta) {
+        // Si la clave NO está en la lista de ocultar, la mantenemos
+        if (!in_array($meta->key, $keys_to_hide)) {
+            $filtered_meta[$meta_id] = $meta;
+        }
+    }
+    
+    return $filtered_meta;
+}, 99, 2);
