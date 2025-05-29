@@ -5,7 +5,6 @@
     display: inline-block;
     height: 1.25rem;
     width: 100%;
-    margin-bottom: 10px;
 }
 
 .placeholder-glow .placeholder {
@@ -73,10 +72,10 @@
 
 /* Estilos específicos para el picker placeholder */
 .picker-placeholder {
-    padding: 20px;
+    padding: 0;
     text-align: center;
 }
 
 .picker-placeholder .placeholder {
-    margin: 8px auto;
+    margin: 5px auto;
 }

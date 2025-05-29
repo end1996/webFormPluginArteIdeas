@@ -57,11 +57,9 @@
             <div id="standard-sizes" class="ios-picker-container" style="display: block;">
                 <!-- Placeholder que se mostrará mientras carga el iOS picker -->
                 <div class="picker-placeholder placeholder-glow" id="size-picker-placeholder" style="display: none;">
-                    <div class="placeholder placeholder-75"></div>
-                    <div class="placeholder placeholder-50"></div>
-                    <div class="placeholder placeholder-75"></div>
-                    <div class="placeholder placeholder-25"></div>
-                    <div class="placeholder placeholder-50"></div>
+                    <div class="placeholder placeholder-100"></div>
+                    <div class="placeholder placeholder-100"></div>
+                    <div class="placeholder placeholder-100"></div>
                 </div>
                 <div id="size-picker">
                     <!-- Contenedor para el iOSPicker -->
