@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.4.4
+Version: 3.4.5
 Author: Enmanuel
 */
 
@@ -493,6 +493,18 @@ function load_custom_notifications_loading_css()
 
 add_action('wp_enqueue_scripts', 'load_custom_notifications_loading_css');
 
+function load_main_menu_redirection_js() {
+    wp_enqueue_script(
+        'main-menu-redirection-js',
+        plugin_dir_url(__FILE__) . 'assets/js/main-menu-redirection.js',
+        array('jquery'),
+        '1.0.0',
+        true
+    );
+}
+
+add_action('wp_enqueue_scripts', 'load_main_menu_redirection_js');
+
 // Contenido de la página de configuración
 function print_image_settings_page_content()
 {
@@ -760,3 +772,20 @@ add_filter('woocommerce_order_item_get_formatted_meta_data', function ($formatte
     
     return $filtered_meta;
 }, 99, 2);
+
+// Redirigir después de cerrar sesión a /wp-login.php
+add_action('wp_logout', 'custom_redirect_after_logout');
+function custom_redirect_after_logout() {
+    wp_redirect('https://webformwp.reflexoperu.com.pe/login');
+    exit();
+}
+	
+// Agregar botón de registro al formulario de login en el checkout
+add_action('woocommerce_before_checkout_form', 'add_custom_register_button_to_checkout_login', 15);
+function add_custom_register_button_to_checkout_login() {
+    if (!is_user_logged_in()) {
+        echo '<div class="custom-register-button" style="margin-top: 15px; text-align: center;">';
+        echo '<a href="' . esc_url(home_url('/login?action=register')) . '" class="button" style="background-color: #e76f51; color: white; display: inline-block; padding: 10px 20px;">¿Nuevo cliente? Regístrate aquí</a>';
+        echo '</div>';
+    }
+}
