@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.4.8
+Version: 3.4.9
 Author: Enmanuel
 */
 
@@ -58,7 +58,7 @@ function web_form_shortcode()
     wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.5', true);
 
     // Cargar JS
-    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.9.6', true);
+    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.9.7', true);
     wp_enqueue_script('events-js', plugin_dir_url(__FILE__) . 'assets/js/events.js', array('jquery'), '1.0.8', true);
     wp_enqueue_script('requestHttp-js', plugin_dir_url(__FILE__) . 'assets/js/requestHttp.js', array('jquery'), '1.1.0', true);
 
@@ -284,6 +284,14 @@ function display_print_image_cart_item_data(
         if (!is_array($images) || (isset($images['image_url']) && is_string($images['image_url']))) {
             $images = [$images];
         }
+
+        if (isset($cart_item['custom_width']) && isset($cart_item['custom_height'])) {
+            $item_data[] = array(
+                'key' => 'Tamaño',
+                'value' => $cart_item['custom_width'] . ' X ' . $cart_item['custom_height']
+            );
+        }
+
         // Solo mostrar imágenes si es array de arrays
         if (is_array($images)) {
             // Mostrar miniaturas de todas las imágenes
@@ -300,14 +308,6 @@ function display_print_image_cart_item_data(
                 );
             }
         }
-
-        if (isset($cart_item['custom_width']) && isset($cart_item['custom_height'])) {
-            $item_data[] = array(
-                'key' => 'Tamaño',
-                'value' => $cart_item['custom_width'] . ' X ' . $cart_item['custom_height']
-            );
-        }
-
 
         if (isset($cart_item['frame']) && $cart_item['frame'] !== 'sin-marco') {
             $frame_value = esc_html($cart_item['frame']);
@@ -386,7 +386,7 @@ function load_cart_page_styles()
 {
     // Cargar solo en la página del carrito
     if (is_cart()) {
-        wp_enqueue_style('cart-page-css', plugin_dir_url(__FILE__) . 'assets/css/cart-page-style.css', array(), '1.0.8');
+        wp_enqueue_style('cart-page-css', plugin_dir_url(__FILE__) . 'assets/css/cart-page-style.css', array(), '1.0.9');
     }
 }
 add_action('wp_enqueue_scripts', 'load_cart_page_styles');
@@ -431,7 +431,7 @@ function cargar_custom_notifications_js()
         'custom-notifications-js',
         plugin_dir_url(__FILE__) . 'assets/js/custom-notifications.js',
         array('jquery'),
-        '1.0.0',
+        '1.0.1',
         true
     );
 }
@@ -443,7 +443,7 @@ function load_custom_notifications_loading_css()
         'custom-notifications-loading-css',
         plugin_dir_url(__FILE__) . 'assets/css/notifications-loading-styles.css',
         array(),
-        '1.0.0'
+        '1.0.1'
     );
 }
 
@@ -698,27 +698,6 @@ add_filter('woocommerce_email_order_item_name', function ($product_name, $item) 
 
 // 4. Prevenir que se añadan atributos automáticamente al nombre
 add_filter('woocommerce_product_variation_title_include_attributes', '__return_false');
-
-
-// add_filter('woocommerce_order_item_get_formatted_meta_data', function ($formatted_meta, $item) {
-
-//     // Lista de claves de metadatos que quieres OCULTAR
-//     $keys_to_hide = array(
-//         'Dimensiones'
-//         // Añade aquí las claves que quieras ocultar
-//     );
-
-//     // Filtrar los metadatos
-//     $filtered_meta = array();
-//     foreach ($formatted_meta as $meta_id => $meta) {
-//         // Si la clave NO está en la lista de ocultar, la mantenemos
-//         if (!in_array($meta->key, $keys_to_hide)) {
-//             $filtered_meta[$meta_id] = $meta;
-//         }
-//     }
-
-//     return $filtered_meta;
-// }, 99, 2);
 
 // Redirigir después de cerrar sesión a /wp-login.php
 add_action('wp_logout', 'custom_redirect_after_logout');

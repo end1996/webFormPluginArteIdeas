@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-       
+
     </style>
 </head>
 
@@ -113,6 +113,13 @@
         </div>
     </div>
     <button class="add-to-cart-btn">Agregar al carro <span id="total-price-button">S/. 0.00</span></button>
+    <!--Notificacion de descuento-->
+    <div id="custom-alert" class="hidden">
+        <div class="custom-alert-box">
+            <p id="custom-alert-message">¡Mensaje!</p>
+            <button id="custom-alert-close">Cerrar</button>
+        </div>
+    </div>
 </body>
 <script type="module">
     window.siteUrl = '<?php echo home_url() ?>';

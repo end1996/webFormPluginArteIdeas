@@ -64,6 +64,17 @@ body.woocommerce-cart .elementor-menu-cart__toggle {
 
 }
 
+/* Oculta específicamente la cantidad en el precio del carrito */
+.yaydp-cart-item-price .yaydp-cart-item-quantity {
+    display: none !important;
+  }
+  
+  /* Ajusta el espaciado resultante */
+  .yaydp-cart-item-price .price {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+
 @media (max-width: 768px) {
     .woocommerce-cart .cart_item .product-price .precio-marco {
         display: none;

@@ -695,6 +695,11 @@ function addToCart() {
     frame_price = window.marcoSeleccionado;
   }
 
+  // Mostrar notificación de descuento aplicado con YayCommerce
+  if (quantity >= 4 && !isCustomSize) {
+    showDiscountAlert("¡Buenísima noticia! Se ha aplicado un descuento especial a tu compra 🎉.")
+  } 
+
   if (typeof ajax_object === "undefined") {
     console.error(
       "❌ ERROR: ajax_object no está definido. Verifica que el script de WordPress está cargando correctamente."
