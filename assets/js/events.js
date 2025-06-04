@@ -3,30 +3,6 @@ let priceBase = 'base';
 let marcoSeleccionado = 0; // 0 es el precio del marco sin seleccionar
 priceDimensionsBaseMain = null;
 
-// EVENTOS DE CAMBIO EN LA CANTIDAD ----------------------------------------------------------------------------------------------------------
-
-function cambioCantidad(){
-    let cantidad = parseInt(document.getElementById('iptCantidad').value)
-
-    if ( cantidad > 4 && cantidad <=12 ) {
-        getDimensions(0.12)
-    }
-    else if ( cantidad > 12 && cantidad <=100 ){
-        getDimensions(0.0855)
-    }
-    else if ( cantidad > 100 ){
-        getDimensions(0.020)
-    }
-    else {
-        getDimensions(0.20)
-    }
-
-    // Actualizar el precio total cuando cambie la cantidad
-    updateTotalPriceWithFrame();
-}
-
-// EVENTOS DE CAMBIO EN LA CANTIDAD ----------------------------------------------------------------------------------------------------------
-
 // EVENTO SELECCION DE MARCO PRECIO ----------------------------------------------------------------------------------------------------------
 
 function calcularPrecioMarco(price) {

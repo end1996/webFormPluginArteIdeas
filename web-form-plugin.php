@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.4.5
+Version: 3.4.8
 Author: Enmanuel
 */
 
@@ -58,9 +58,9 @@ function web_form_shortcode()
     wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.5', true);
 
     // Cargar JS
-    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.9.2', true);
-    wp_enqueue_script('events-js', plugin_dir_url(__FILE__) . 'assets/js/events.js', array('jquery'), '1.0.7', true);
-    wp_enqueue_script('requestHttp-js', plugin_dir_url(__FILE__) . 'assets/js/requestHttp.js', array('jquery'), '1.0.7', true);
+    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.9.6', true);
+    wp_enqueue_script('events-js', plugin_dir_url(__FILE__) . 'assets/js/events.js', array('jquery'), '1.0.8', true);
+    wp_enqueue_script('requestHttp-js', plugin_dir_url(__FILE__) . 'assets/js/requestHttp.js', array('jquery'), '1.1.0', true);
 
     // Cargar Swiper JS desde CDN (depende de jQuery)
     wp_enqueue_script('swiper-js', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', array('jquery'), '11.0.0', true);
@@ -186,7 +186,7 @@ function process_print_image_to_cart()
     // Guardar todas las imágenes en el array print_image_data
     $cart_item_data = array(
         'print_image_data' => $images_data,
-        'size' => $is_custom_size ? "{$custom_width}x{$custom_height}" : $size,
+        //'size' => $is_custom_size ? "{$custom_width} X {$custom_height}" : $size,
         'price' => $price,
         'is_custom_size' => $is_custom_size,
         'frame' => $frame,
@@ -195,9 +195,14 @@ function process_print_image_to_cart()
         'unique_key' => md5(microtime() . rand())
     );
 
+    // Solo agregar dimensiones si son personalizadas
+    if ($is_custom_size) {
+        $cart_item_data['custom_width'] = $custom_width;
+        $cart_item_data['custom_height'] = $custom_height;
+    }
+
     // --- NUEVO: Añadir variación correctamente ---
-    $variation = array();
-    if (!empty($size)) {
+    if (!$is_custom_size && !empty($size)) {
         $variation['attribute_pa_dimensiones'] = $size;
     }
 
@@ -230,6 +235,21 @@ function process_print_image_to_cart()
 add_action('wp_ajax_process_print_image', 'process_print_image_to_cart');
 add_action('wp_ajax_nopriv_process_print_image', 'process_print_image_to_cart');
 
+add_action('woocommerce_before_calculate_totals', 'set_custom_price_for_cart_item', 20, 1);
+function set_custom_price_for_cart_item($cart)
+{
+    if (is_admin() && !defined('DOING_AJAX'))
+        return;
+
+    foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
+        if (isset($cart_item['print_image_data']) && isset($cart_item['price'])) {
+            $custom_price = floatval($cart_item['price']);
+            if ($custom_price > 0) {
+                $cart_item['data']->set_price($custom_price);
+            }
+        }
+    }
+}
 
 // Mostrar los datos personalizados en el carrito y checkout
 
@@ -253,72 +273,6 @@ function display_cart_product($product_images, $cart_item, $cart_item_key)
     return []; // Retornar array vacío en lugar de $product_images
 }
 add_filter('woocommerce_store_api_cart_item_images', 'display_cart_product', 10, 3);
-
-
-// Actualizar el precio del producto en el carrito
-function update_cart_item_price($cart)
-{
-    if (did_action('woocommerce_before_calculate_totals') >= 2 || is_admin() && !defined('DOING_AJAX')) {
-        return;
-    }
-
-    // Definir precios por tamaño y cantidad
-    $size_prices = [
-        "10X15" => 5.00,
-        "13X18" => 7.00,
-        "15X21" => 8.00,
-        "20X25" => 15.00,
-        "20X30" => 18.00,
-        "25X38" => 25.00,
-        "30X45" => 35.00,
-        "30X60" => 45.00,
-    ];
-    $bulk_size_prices = [
-        "10X15" => 3.00,
-        "13X18" => 5.00,
-        "15X21" => 6.00,
-        "20X25" => 13.00,
-        "20X30" => 15.00,
-        "25X38" => 20.00,
-        "30X45" => 30.00,
-        "30X60" => 40.00,
-    ];
-    $bulk_size_prices_12 = [
-        "10X15" => 2.50,
-        "13X18" => 4.00,
-        "15X21" => 5.00,
-        "20X25" => 10.00,
-        "20X30" => 12.00,
-        "25X38" => 18.00,
-        "30X45" => 25.00,
-        "30X60" => 35.00,
-    ];
-    foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
-        $product = $cart_item['data'];
-        $quantity = $cart_item['quantity'];
-
-        $is_custom_size = isset($cart_item['is_custom_size']) ? $cart_item['is_custom_size'] : false;
-
-        if ($is_custom_size && isset($cart_item['price'])) {
-            $precio_final = floatval($cart_item['price']);
-        } else {
-            $size = isset($cart_item['size']) ? $cart_item['size'] : '';
-            if (!empty($size)) {
-                if ($quantity >= 12 && isset($bulk_size_prices_12[$size])) {
-                    $precio_final = $bulk_size_prices_12[$size];
-                } elseif ($quantity >= 4 && isset($bulk_size_prices[$size])) {
-                    $precio_final = $bulk_size_prices[$size];
-                } elseif (isset($size_prices[$size])) {
-                    $precio_final = $size_prices[$size];
-                }
-            }
-        }
-        if (isset($precio_final)) {
-            $product->set_price($precio_final);
-        }
-    }
-}
-add_action('woocommerce_before_calculate_totals', 'update_cart_item_price', 20, 1);
 
 function display_print_image_cart_item_data(
     $item_data,
@@ -346,21 +300,28 @@ function display_print_image_cart_item_data(
                 );
             }
         }
-        // Otros datos como tamaño, marco, comentarios...
-        // if (isset($cart_item['size'])) {
-        //     $item_data[] = array('key' => 'Tamaño', 'value' => $cart_item['size']);
-        // }
-        if (!empty($cart_item['comments'])) {
-            $item_data[] = array('key' => 'Comentarios', 'value' => $cart_item['comments']);
+
+        if (isset($cart_item['custom_width']) && isset($cart_item['custom_height'])) {
+            $item_data[] = array(
+                'key' => 'Tamaño',
+                'value' => $cart_item['custom_width'] . ' X ' . $cart_item['custom_height']
+            );
         }
+
+
         if (isset($cart_item['frame']) && $cart_item['frame'] !== 'sin-marco') {
             $frame_value = esc_html($cart_item['frame']);
             $item_data[] = array('key' => 'Marco', 'value' => $frame_value);
+        }
+
+        if (!empty($cart_item['comments'])) {
+            $item_data[] = array('key' => 'Comentarios', 'value' => $cart_item['comments']);
         }
     }
     return $item_data;
 }
 add_filter('woocommerce_get_item_data', 'display_print_image_cart_item_data', 10, 2);
+
 
 // Guardar datos personalizados en el pedido
 function save_print_image_order_item_meta($item, $cart_item_key, $values, $order)
@@ -373,15 +334,19 @@ function save_print_image_order_item_meta($item, $cart_item_key, $values, $order
             }
         }
 
+        if (
+            isset($values['is_custom_size']) && $values['is_custom_size'] &&
+            !empty($values['custom_width']) && !empty($values['custom_height'])
+        ) {
+            $dimension_text = $values['custom_width'] . ' X ' . $values['custom_height'];
+            $item->add_meta_data('Tamaño', $dimension_text);
+        }
+
         // Guardar todas las URLs de imágenes como un solo meta dato
         if (!empty($image_urls)) {
             $item->add_meta_data('Imágenes', implode(', ', $image_urls));
         }
 
-        // Guardar otros datos relacionados
-        // if (isset($values['size'])) {
-        //     $item->add_meta_data('Tamaño', $values['size']);
-        // }
         if (isset($values['frame']) && $values['frame'] !== 'sin-marco') {
             $item->add_meta_data('Marco', $values['frame']);
         }
@@ -391,6 +356,7 @@ function save_print_image_order_item_meta($item, $cart_item_key, $values, $order
     }
 }
 add_action('woocommerce_checkout_create_order_line_item', 'save_print_image_order_item_meta', 10, 4);
+
 
 // Añadir página de configuración en el panel de administración
 function print_image_settings_page()
@@ -405,16 +371,6 @@ function print_image_settings_page()
     );
 }
 add_action('admin_menu', 'print_image_settings_page');
-
-// Aumentar límites de PHP para permitir subida de imágenes grandes
-function increase_upload_limits()
-{
-    @ini_set('post_max_size', '64M');
-    @ini_set('upload_max_filesize', '32M');
-    @ini_set('max_execution_time', '300');
-    @ini_set('max_input_time', '300');
-}
-add_action('init', 'increase_upload_limits');
 
 // Cargar el script del carrito en las páginas necesarias
 function load_cart_handler_script()
@@ -493,7 +449,8 @@ function load_custom_notifications_loading_css()
 
 add_action('wp_enqueue_scripts', 'load_custom_notifications_loading_css');
 
-function load_main_menu_redirection_js() {
+function load_main_menu_redirection_js()
+{
     wp_enqueue_script(
         'main-menu-redirection-js',
         plugin_dir_url(__FILE__) . 'assets/js/main-menu-redirection.js',
@@ -550,40 +507,30 @@ function print_image_settings_page_content()
 
 // Mostrar miniaturas en el detalle del pedido en el admin
 add_filter('woocommerce_order_item_display_meta_value', function ($value, $meta, $item) {
-    static $image_group = ''; // Variable estática para acumular imágenes
-    static $is_first_image = true; // Bandera para mostrar "Imágenes:" solo una vez
-
+    // Eliminamos las variables estáticas y usamos un enfoque directo
     if ($meta->key === 'Imágenes') {
-        // Verificar si el valor es un string y no un array
-        $image_urls = explode(', ', $meta->value); // Separar las URLs de las imágenes
-        $thumbnails = '';
+        $image_urls = is_array($meta->value) ? $meta->value : explode(', ', $meta->value);
+        $thumbnails = '<div class="image-thumbnails-container">';
 
         foreach ($image_urls as $img_url) {
-            $img_url = esc_url($img_url);
+            if (empty(trim($img_url)))
+                continue;
+
+            $img_url = esc_url(trim($img_url));
             $thumbnails .= '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">'
-                . '<img src="' . $img_url . '" alt="Imagen subida" class="order-image-thumbnail" style="max-width:60px; height:40px; object-fit: cover;margin-right:2px;margin-bottom:2px;border:1px solid #ccc;border-radius:4px;" />';
-            // Mostrar el enlace de descarga solo si está en el área de administración
+                . '<img src="' . $img_url . '" alt="Imagen subida" style="max-width:60px;height:40px;object-fit:cover;border:1px solid #ccc;border-radius:4px;" />';
+
             if (is_admin()) {
-                $thumbnails .= '<a href="' . $img_url . '" target="_blank" style="font-size:12px;word-break:break-all;text-align:center;display:inline-block;">Descargar / Ver imagen</a>';
+                $thumbnails .= '<a href="' . $img_url . '" target="_blank" style="font-size:12px;">Descargar</a>';
             }
 
             $thumbnails .= '</div>';
         }
 
-        // Acumular las imágenes en el grupo
-        $image_group .= $thumbnails;
-
-        // Si es la primera imagen, agregar el encabezado "Imágenes:"
-        if ($is_first_image) {
-            $is_first_image = false;
-            return $image_group;
-        }
-
-        // Retornar vacío para evitar duplicar encabezados
-        return '';
+        $thumbnails .= '</div>';
+        return $thumbnails;
     }
 
-    // Si no es una imagen, retornar el valor original
     return $value;
 }, 10, 3);
 
@@ -685,8 +632,8 @@ add_action('woocommerce_cart_calculate_fees', function ($cart) {
     foreach ($frame_totals as $frame_type => $total_price) {
         if ($total_price > 0) {
             $quantity_text = $frame_quantities[$frame_type] > 1
-            ? ' (x' .$frame_quantities[$frame_type] . ')'
-            : '';
+                ? ' (x' . $frame_quantities[$frame_type] . ')'
+                : '';
 
             $fee_name = 'Marco: ' . esc_html($frame_type) . $quantity_text;
             $cart->add_fee($fee_name, $total_price, false);
@@ -694,14 +641,14 @@ add_action('woocommerce_cart_calculate_fees', function ($cart) {
     }
 });
 
-// Mostrar solo el nombre base del producto en el carrito y checkout, sin atributos ni enlaces
-add_filter('woocommerce_cart_item_name', function ($product_name, $cart_item, $cart_item_key) {
-    if (isset($cart_item['data']) && is_object($cart_item['data'])) {
-        // Solo el nombre base, sin enlace ni atributos
-        return esc_html($cart_item['data']->get_title());
-    }
-    return $product_name;
-}, 99, 3);
+// // Mostrar solo el nombre base del producto en el carrito y checkout, sin atributos ni enlaces
+// add_filter('woocommerce_cart_item_name', function ($product_name, $cart_item, $cart_item_key) {
+//     if (isset($cart_item['data']) && is_object($cart_item['data'])) {
+//         // Solo el nombre base, sin enlace ni atributos
+//         return esc_html($cart_item['data']->get_title());
+//     }
+//     return $product_name;
+// }, 99, 3);
 
 // 1. Filtro principal para nombres de productos en órdenes
 add_filter('woocommerce_order_item_name', function ($product_name, $item, $is_visible = true) {
@@ -753,36 +700,38 @@ add_filter('woocommerce_email_order_item_name', function ($product_name, $item) 
 add_filter('woocommerce_product_variation_title_include_attributes', '__return_false');
 
 
-add_filter('woocommerce_order_item_get_formatted_meta_data', function ($formatted_meta, $item) {
-    
-    // Lista de claves de metadatos que quieres OCULTAR
-    $keys_to_hide = array(
-        'Tamaño'
-        // Añade aquí las claves que quieras ocultar
-    );
-    
-    // Filtrar los metadatos
-    $filtered_meta = array();
-    foreach ($formatted_meta as $meta_id => $meta) {
-        // Si la clave NO está en la lista de ocultar, la mantenemos
-        if (!in_array($meta->key, $keys_to_hide)) {
-            $filtered_meta[$meta_id] = $meta;
-        }
-    }
-    
-    return $filtered_meta;
-}, 99, 2);
+// add_filter('woocommerce_order_item_get_formatted_meta_data', function ($formatted_meta, $item) {
+
+//     // Lista de claves de metadatos que quieres OCULTAR
+//     $keys_to_hide = array(
+//         'Dimensiones'
+//         // Añade aquí las claves que quieras ocultar
+//     );
+
+//     // Filtrar los metadatos
+//     $filtered_meta = array();
+//     foreach ($formatted_meta as $meta_id => $meta) {
+//         // Si la clave NO está en la lista de ocultar, la mantenemos
+//         if (!in_array($meta->key, $keys_to_hide)) {
+//             $filtered_meta[$meta_id] = $meta;
+//         }
+//     }
+
+//     return $filtered_meta;
+// }, 99, 2);
 
 // Redirigir después de cerrar sesión a /wp-login.php
 add_action('wp_logout', 'custom_redirect_after_logout');
-function custom_redirect_after_logout() {
+function custom_redirect_after_logout()
+{
     wp_redirect('https://webformwp.reflexoperu.com.pe/login');
     exit();
 }
-	
+
 // Agregar botón de registro al formulario de login en el checkout
 add_action('woocommerce_before_checkout_form', 'add_custom_register_button_to_checkout_login', 15);
-function add_custom_register_button_to_checkout_login() {
+function add_custom_register_button_to_checkout_login()
+{
     if (!is_user_logged_in()) {
         echo '<div class="custom-register-button" style="margin-top: 15px; text-align: center;">';
         echo '<a href="' . esc_url(home_url('/login?action=register')) . '" class="button" style="background-color: #e76f51; color: white; display: inline-block; padding: 10px 20px;">¿Nuevo cliente? Regístrate aquí</a>';

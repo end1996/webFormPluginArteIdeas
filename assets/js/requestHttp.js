@@ -2,37 +2,35 @@
 
 // DIMENSIONES | PRECIOS ---------------------------------------
 let customDimensionObj = null; // Variable global para la dimensión personalizada
+
 const getDimensions = async () => {
   try {
-    // Mostrar placeholder antes de hacer la petición
     showSizePickerPlaceholder();
-
-    //if ( siteUrl == null || siteUrl == undefined ) { return; }
 
     const responseDimensions = await fetch(
       window.siteUrl + "/wp-json/api/v1/dimensiones"
     );
     const responsePrice = await fetch(
-      window.siteUrl + "/wp-json/api/v1/dimensiones_precio"
+      window.siteUrl + "/wp-json/api/v1/dimensiones_precio_base"
     );
 
-    if (!responseDimensions.ok || !responsePrice.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
-    }
+    if (!responseDimensions.ok || !responsePrice.ok)
+      throw new Error(`Error HTTP`);
 
     const dimensionsData = await responseDimensions.json();
     const priceData = await responsePrice.json();
-    const dimensiones = dimensionsData.custom_dimensions_data;
-    const precios = priceData.price_data;
 
-    // Guardar la dimensión personalizada y filtrar del array
-    customDimensionObj = dimensiones.find((d) => d.is_custom);
-    const dimensionesFiltradas = dimensiones.filter((d) => !d.is_custom);
+    // Obtener dimensión personalizada
+    customDimensionObj = dimensionsData.custom_dimensions_data.find(
+      (d) => d.is_custom
+    );
 
-    // ORDENAR WIDTH
-    dimensionesFiltradas.sort((a, b) => a.width - b.width);
+    // Filtrar dimensiones predefinidas
+    const dimensionesFiltradas = dimensionsData.custom_dimensions_data.filter(
+      (d) => !d.is_custom
+    );
 
-    // ORDENAR HEIGHT SI LOS WIDTH SON IGUALES
+    // Ordenar dimensiones por width y height
     dimensionesFiltradas.sort((a, b) => {
       if (a.width === b.width) {
         return a.height - b.height;
@@ -40,35 +38,52 @@ const getDimensions = async () => {
       return a.width - b.width;
     });
 
-    dimensionesFiltradas.forEach((dimension) => {
-      const key = `${dimension.width}X${dimension.height}`;
-
-      precios.forEach((precio) => {
-        if (precio.dimension_id == dimension.id) {
-          if (!precios_por_cantidad[precio.quantity])
-            precios_por_cantidad[precio.quantity] = {};
-          if (!dimension_precio_data[precio.quantity])
-            dimension_precio_data[precio.quantity] = {};
-
-          precios_por_cantidad[precio.quantity][key] = precio.price;
-          dimension_precio_data[precio.quantity][key] = precio.variation_id;
-        }
-      });
+    // Crear mapa de precios base para dimensiones predefinidas
+    const dimensionPrecioBase = {};
+    priceData.price_data.forEach((precio) => {
+      const dimension = dimensionesFiltradas.find(
+        (d) => d.id === precio.dimension_id
+      );
+      if (dimension) {
+        const key = `${dimension.width}X${dimension.height}`;
+        dimensionPrecioBase[key] = {
+          price: precio.price,
+          variation_id: precio.variation_id,
+        };
+      }
     });
 
-    // Tu código para inicializar el iOS picker
+    // Agregar dimensión personalizada al mapa si tiene custom_variation_id válido
+    if (
+      customDimensionObj &&
+      customDimensionObj.custom_variation_id !== null &&
+      customDimensionObj.custom_variation_id !== "0"
+    ) {
+      const precioCustom = priceData.price_data.find(
+        (p) => p.variation_id === customDimensionObj.custom_variation_id
+      );
+
+      if (precioCustom) {
+        dimensionPrecioBase["custom"] = {
+          price: precioCustom.price,
+          variation_id: precioCustom.variation_id,
+        };
+      }
+    }
+
+    // Guardar mapa globalmente
+    window.dimensionPrecioBase = dimensionPrecioBase;
+
+    // Inicializar picker
     await initializeSizePicker();
-    
-    // Ocultar placeholder cuando el picker esté listo
+
     hideSizePickerPlaceholder();
-    
   } catch (error) {
     console.error("Error al obtener dimensiones:", error);
-    
-    // En caso de error, también ocultar el placeholder
     hideSizePickerPlaceholder();
   }
 };
+
 
 // MARCOS --------------------------------------------
 const getFrames = async (url) => {
@@ -108,9 +123,8 @@ const getFrames = async (url) => {
     document.getElementById("frame-picker").innerHTML = html;
 
     await initializeFramePicker();
-    
-    // hideFramePickerPlaceholder(); // Si implementas placeholder para marcos
 
+    // hideFramePickerPlaceholder(); // Si implementas placeholder para marcos
   } catch (error) {
     console.error("Error al obtener los marcos:", error);
     // hideFramePickerPlaceholder(); // En caso de error
@@ -118,4 +132,3 @@ const getFrames = async (url) => {
 };
 
 // PETICIONES HTTP --------------------------------------------------------------------------------------------------------
-

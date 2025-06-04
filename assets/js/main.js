@@ -6,13 +6,8 @@ let sizePicker;
 let selectedSize;
 let currentSizePrices;
 let selectedSizeId;
-let quantity_condition_text = [1, 4, 12, 100];
-
-let precios_por_cantidad = {};
-let dimension_precio_data = {};
 
 let priceDimensionsBaseMain;
-let cantidad_index;
 let variation_id = 0;
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -24,54 +19,42 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function initializeSizePicker() {
-  const quantityInput = document.querySelector(".quantity-field input");
   const sizePickerContainer = document.getElementById("size-picker");
 
-  function getCurrentSizePrices(quantity) {
-    return getCurrentRangeObject(precios_por_cantidad, quantity);
-  }
-
-  function updateSizeOptions(quantity) {
-    currentSizePrices = getCurrentSizePrices(quantity);
-    const sizeOptions = Object.keys(currentSizePrices).map((value) => ({
-      value: value,
-      label: `${value.replace("X", "cm Ancho X ")}cm Alto => (S/.${
-        currentSizePrices[value]
-      })`,
-    }));
-
-    // Guardar el valor actual antes de destruir
-    const previousValue = selectedSize;
-
-    // Si ya existe, destruir el picker
-    if (sizePicker) {
-      sizePicker.destroy();
-    }
-
-    // Crear el picker con el valor anterior si existe, si no, usar el inicial
-    sizePicker = new iOSPicker({
-      container: sizePickerContainer,
-      items: sizeOptions,
-      initialValue: previousValue,
-      onChange: (value) => {
-        selectedSize = value; // Guardar nuevo valor seleccionado
-        revalidateImagesWithNewSize(value);
-        updateTotalPrice();
-        reiniciarPrecioMarco();
-      },
+  // Obtener y ordenar las opciones de tamaño
+  const sizeOptions = Object.entries(window.dimensionPrecioBase)
+    .map(([size, data]) => ({
+      value: size,
+      label: `${size.replace("X", "cm Ancho X ")}cm Alto => (S/.${data.price})`,
+      // Agregar propiedades para ordenamiento
+      width: size === "custom" ? Infinity : parseInt(size.split("X")[0]),
+      height: size === "custom" ? Infinity : parseInt(size.split("X")[1]),
+      isCustom: size === "custom"
+    }))
+    .sort((a, b) => {
+      // Poner dimensión personalizada al final
+      if (a.isCustom) return 1;
+      if (b.isCustom) return -1;
+      
+      // Ordenar por ancho, luego por alto
+      if (a.width === b.width) {
+        return a.height - b.height;
+      }
+      return a.width - b.width;
     });
-  }
 
-  // Inicializar con cantidad 1
-  updateSizeOptions(1);
-
-  // Escuchar cambios en cantidad
-  quantityInput.addEventListener("input", function () {
-    const quantity = parseInt(this.value) || 1;
-    updateSizeOptions(quantity);
+  // Crear picker con opciones ordenadas
+  sizePicker = new iOSPicker({
+    container: sizePickerContainer,
+    items: sizeOptions,
+    onChange: (value) => {
+      selectedSize = value;
+      revalidateImagesWithNewSize(value);
+      updateTotalPrice();
+      reiniciarPrecioMarco();
+    },
   });
 }
-
 function initializeFramePicker() {
   const framePicker = document.getElementById("frame-picker");
   if (!framePicker) return;
@@ -502,7 +485,7 @@ function handleFiles(e) {
 
     fileInput.value = ""; // Resetea el input para permitir subir el mismo archivo otra vez
   } else {
-    showNotification("Por favor espere la carga de dimensiones...",);
+    showNotification("Por favor espere la carga de dimensiones...");
   }
 }
 
@@ -644,20 +627,6 @@ function getSelectedSizePrice() {
   return currentSizePrices[selectedSize] || 0; // Retornar el precio correspondiente
 }
 
-// Función utilitaria para obtener el objeto correcto según el rango de cantidad
-function getCurrentRangeObject(obj, quantity) {
-  let best = null;
-  let bestKey = null;
-  Object.keys(obj).forEach((key) => {
-    const keyInt = parseInt(key);
-    if (keyInt <= quantity && (bestKey === null || keyInt > bestKey)) {
-      bestKey = keyInt;
-      best = obj[key];
-    }
-  });
-  return best;
-}
-
 // Función para añadir al carrito - Modificada para procesar múltiples imágenes de forma secuencial
 function addToCart() {
   if (uploadedImagesData.length === 0) {
@@ -679,6 +648,7 @@ function addToCart() {
     }
     size = `${customWidth}X${customHeight}`;
     pricePerUnit = parseInt(customHeight) * parseInt(customWidth) * 0.03;
+    console.log(pricePerUnit)
     pricePerUnit = Math.round(pricePerUnit);
     // Usar el custom_variation_id de la dimensión personalizada
     if (
@@ -697,15 +667,10 @@ function addToCart() {
     }
   } else {
     size = sizePicker.getValue();
-    pricePerUnit = getSelectedSizePrice();
-    // Obtener variation_id para tamaños estándar
-    const quantityInt = parseInt(quantity) || 1;
-    const currentVariationObj = getCurrentRangeObject(
-      dimension_precio_data,
-      quantityInt
-    );
-    if (currentVariationObj && currentVariationObj[size]) {
-      variation_id = currentVariationObj[size];
+    const sizeData = window.dimensionPrecioBase[size];
+    if (sizeData) {
+      pricePerUnit = sizeData.price;
+      variation_id = sizeData.variation_id;
     }
   }
 
@@ -861,7 +826,6 @@ function resetForm() {
   }
 }
 
-// Función para calcular el precio total
 function updateTotalPrice() {
   if (uploadedImagesData.length === 0) {
     document.getElementById("total-price-button").innerText = `S/. 0.00`;
@@ -873,51 +837,31 @@ function updateTotalPrice() {
   let pricePerUnit = 0;
 
   if (selectedOptionSize === "custom") {
+    // Lógica para tamaños personalizados (igual que antes)
     const width =
       parseInt(document.getElementById("custom-size__width").value) || 0;
     const height =
       parseInt(document.getElementById("custom-size__height").value) || 0;
 
     if (width > 0 && height > 0) {
-      // Primero calculamos el precio según la fórmula
       pricePerUnit = Math.round(height * width * 0.03);
-
-      const totalPrice = pricePerUnit * quantity;
-      priceDimensionsBaseMain = totalPrice.toFixed(2);
-
-      // Verificar si hay marco seleccionado y agregarlo al total
-      let precioMarco = parseFloat(window.marcoSeleccionado) || 0;
-      let precioFinal = totalPrice + precioMarco * quantity;
-
-      document.getElementById(
-        "total-price-button"
-      ).innerText = `S/. ${precioFinal.toFixed(2)}`;
-      return;
-    } else {
-      // Si los campos están vacíos o son cero, mostrar precio cero
-      document.getElementById("total-price-button").innerText = `S/. 0.00`;
-      priceDimensionsBaseMain = 0;
     }
   } else {
-    //Si se utilice los pickers
-    selectedSize = sizePicker.getValue();
-
-    if (selectedSize) {
-      pricePerUnit = currentSizePrices[selectedSize] || 0;
-    }
-
-    const totalPrice = pricePerUnit * quantity;
-    priceDimensionsBaseMain = totalPrice.toFixed(2);
-
-    // Verificar si hay marco seleccionado y agregarlo al total
-    let precioMarco = parseFloat(window.marcoSeleccionado) || 0;
-    let precioFinal = totalPrice + precioMarco * quantity;
-
-    // Update total price text on button
-    document.getElementById(
-      "total-price-button"
-    ).innerText = `S/. ${precioFinal.toFixed(2)}`;
+    // Para tamaños estándar, usar precio del dimensionPrecioBase
+    const sizeData = window.dimensionPrecioBase[selectedSize] || { price: 0 };
+    pricePerUnit = sizeData.price;
   }
+
+  const totalPrice = pricePerUnit * quantity;
+  priceDimensionsBaseMain = totalPrice.toFixed(2);
+
+  // Agregar marco si corresponde
+  let precioMarco = parseFloat(window.marcoSeleccionado) || 0;
+  let precioFinal = totalPrice + precioMarco * quantity;
+
+  document.getElementById(
+    "total-price-button"
+  ).innerText = `S/. ${precioFinal.toFixed(2)}`;
 }
 
 // Exponer la función al ámbito global para evitar problemas con `onclick`
