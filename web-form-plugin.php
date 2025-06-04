@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.4.9
+Version: 3.5.4
 Author: Enmanuel
 */
 
@@ -295,16 +295,18 @@ function display_print_image_cart_item_data(
         // Solo mostrar imágenes si es array de arrays
         if (is_array($images)) {
             // Mostrar miniaturas de todas las imágenes
-            $thumbnails = '';
+            $thumbnails = '<div class="image-thumbnails-container">';
             foreach ($images as $img) {
                 if (is_array($img) && !empty($img['image_url'])) {
-                    $thumbnails .= '<img src="' . esc_url($img['image_url']) . '" alt="Imagen subida" class="cart-image-preview" style="max-width:60px; height:40px; object-fit: cover;margin-right:2px;margin-bottom:2px;border:1px solid #ccc;border-radius:4px;" />';
+                    $thumbnails .= '<div class="image-thumb">';
+                    $thumbnails .= '<img src="' . esc_url($img['image_url']) . '" alt="Imagen subida" />';
+                    $thumbnails .= '</div>';
                 }
             }
             if (!empty($thumbnails)) {
                 $item_data[] = array(
                     'key' => 'Imágenes',
-                    'value' => $thumbnails
+                    'value' => $thumbnails  // agrego salto de línea aquí
                 );
             }
         }
@@ -351,7 +353,7 @@ function save_print_image_order_item_meta($item, $cart_item_key, $values, $order
             $item->add_meta_data('Marco', $values['frame']);
         }
         if (!empty($values['comments'])) {
-            $item->add_meta_data('Comentarios', $values['comments']);
+            $item->add_meta_data('Comentarios', '<div style="max-width:300px; word-wrap: break-word; white-space: normal;">' . esc_html($values['comments']) . '</div>', true);
         }
     }
 }
@@ -386,7 +388,7 @@ function load_cart_page_styles()
 {
     // Cargar solo en la página del carrito
     if (is_cart()) {
-        wp_enqueue_style('cart-page-css', plugin_dir_url(__FILE__) . 'assets/css/cart-page-style.css', array(), '1.0.9');
+        wp_enqueue_style('cart-page-css', plugin_dir_url(__FILE__) . 'assets/css/cart-page-style.css', array(), '1.1.0');
     }
 }
 add_action('wp_enqueue_scripts', 'load_cart_page_styles');
@@ -394,15 +396,25 @@ add_action('wp_enqueue_scripts', 'load_cart_page_styles');
 function load_order_details_styles()
 {
     if (is_order_received_page()) {
-        wp_enqueue_style('order-details-css', plugin_dir_url(__FILE__) . 'assets/css/order-details-style.css', array(), '1.0.0');
+        wp_enqueue_style('order-details-css', plugin_dir_url(__FILE__) . 'assets/css/order-details-style.css', array(), '1.0.3');
     }
 }
 add_action('wp_enqueue_scripts', 'load_order_details_styles');
 
+function load_order_details_admin_styles($hook)
+{
+    // Asegurarnos de que estamos en la vista de edición de pedidos de WooCommerce
+    if (isset($_GET['page']) && $_GET['page'] === 'wc-orders' && isset($_GET['action']) && $_GET['action'] === 'edit') {
+        wp_enqueue_style('order-details-css-admin', plugin_dir_url(__FILE__) . 'assets/css/order-details-style.css', array(), '1.0.4');
+    }
+}
+add_action('admin_enqueue_scripts', 'load_order_details_admin_styles');
+
+
 function load_checkout_page_styles()
 {
     if (is_checkout()) {
-        wp_enqueue_style('checkout-page-css', plugin_dir_url(__FILE__) . 'assets/css/checkout-page-style.css', array(), '1.0.0');
+        wp_enqueue_style('checkout-page-css', plugin_dir_url(__FILE__) . 'assets/css/checkout-page-style.css', array(), '1.0.2');
     }
 }
 add_action('wp_enqueue_scripts', 'load_checkout_page_styles');
@@ -507,21 +519,22 @@ function print_image_settings_page_content()
 
 // Mostrar miniaturas en el detalle del pedido en el admin
 add_filter('woocommerce_order_item_display_meta_value', function ($value, $meta, $item) {
-    // Eliminamos las variables estáticas y usamos un enfoque directo
     if ($meta->key === 'Imágenes') {
         $image_urls = is_array($meta->value) ? $meta->value : explode(', ', $meta->value);
-        $thumbnails = '<div class="image-thumbnails-container">';
+        // Estilos en línea mínimos para correos (solo en <img>)
+        $inline_img_style = 'width:120px; height:120px; object-fit:cover; border:1px solid #ccc; border-radius:4px; display:block;';
 
+        $thumbnails = '<div class="image-thumbnails-container">';
+        
         foreach ($image_urls as $img_url) {
-            if (empty(trim($img_url)))
-                continue;
+            if (empty(trim($img_url))) continue;
 
             $img_url = esc_url(trim($img_url));
-            $thumbnails .= '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">'
-                . '<img src="' . $img_url . '" alt="Imagen subida" style="max-width:60px;height:40px;object-fit:cover;border:1px solid #ccc;border-radius:4px;" />';
+            $thumbnails .= '<div class="image-thumb">'
+                . '<img src="' . $img_url . '" alt="Imagen subida" style="' . esc_attr($inline_img_style) . '" />';
 
             if (is_admin()) {
-                $thumbnails .= '<a href="' . $img_url . '" target="_blank" style="font-size:12px;">Descargar</a>';
+                $thumbnails .= '<a href="' . $img_url . '" target="_blank" style="font-size:11px;">Descargar</a>';
             }
 
             $thumbnails .= '</div>';
@@ -533,6 +546,8 @@ add_filter('woocommerce_order_item_display_meta_value', function ($value, $meta,
 
     return $value;
 }, 10, 3);
+
+
 
 // Añadir botón de seguir comprando en vista de checkout
 remove_action('woocommerce_proceed_to_checkout', 'woocommerce_button_proceed_to_checkout', 20);
