@@ -597,7 +597,7 @@ document.addEventListener('webForm:customEvent', function(e) {
 | show_preview  | Mostrar previsualización    | true/false       | true        |
 | max_files     | Máximo de archivos          | número           | 10          |
 | allowed_types | Tipos de archivo permitidos | jpg,png,gif      | todos       |
-| theme         | Tema visual | light/dark    | light            |             |
+| theme         | Tema visual                 | light/dark       | light       |
 | layout        | Diseño del formulario       | standard/compact | standard    |
 
 ### Ejemplos de Uso
