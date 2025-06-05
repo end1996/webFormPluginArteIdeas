@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.5.6
+Version: 3.5.7
 Author: Enmanuel
 */
 
@@ -256,7 +256,7 @@ function load_cart_handler_script()
 {
     // Solo cargar en páginas que contengan el carrito
     if (is_cart() || is_checkout() || is_product()) {
-        wp_enqueue_script('cart-handler-js', plugin_dir_url(__FILE__) . 'assets/js/cart-handler.js', array('jquery', 'wc-cart'), '1.0.2', true);
+        wp_enqueue_script('cart-handler-js', plugin_dir_url(__FILE__) . 'assets/js/cart-handler.js', array('jquery', 'wc-cart'), '1.0.6', true);
     }
 }
 add_action('wp_enqueue_scripts', 'load_cart_handler_script');
