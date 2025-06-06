@@ -21,7 +21,7 @@
                 </svg>
                 <p class="desktop-upload-text">Arrastra tus imágenes aquí o haz clic para subir</p>
                 <p class="mobile-upload-text">Sube tus imágenes aquí</p>
-                <input type="file" id="file-input" multiple accept="image/*" style="display: none;" />
+                <input type="file" id="file-input" multiple accept="image/jpeg, image/png, image/svg+xml, image/webp" style="display: none;" />
             </div>
 
             <div class="images-grid" id="images-grid">
@@ -113,7 +113,7 @@
         </div>
     </div>
     <button class="add-to-cart-btn">Agregar al carro <span id="total-price-button">S/. 0.00</span></button>
-    <!--Notificacion de descuento-->
+    <!--Alerta personalizada-->
     <div id="custom-alert" class="hidden">
         <div class="custom-alert-box">
             <p id="custom-alert-message">¡Mensaje!</p>

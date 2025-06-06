@@ -39,7 +39,7 @@ function hideLoadingIndicator() {
 }
 
 // Alerta para descuentos aplicados con Yaycommerce
-function showDiscountAlert(message) {
+function showCustomAlert(message) {
   const alertOverlay = document.getElementById("custom-alert");
   const alertMessage = document.getElementById("custom-alert-message");
   const alertClose = document.getElementById("custom-alert-close");

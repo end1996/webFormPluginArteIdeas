@@ -378,12 +378,14 @@ uploadArea.addEventListener("drop", (e) => {
 function handleFiles(e) {
   const files = e.target.files; // Obtiene los archivos seleccionados
 
+  hasInvalidFiles(files, e); // Comprobar si hay imágenes con formato incompatible
+
   const isValid = validateAndUploadImages(files, uploadedImagesData, fileInput);
   if (!isValid) {
     // El proceso se detiene, ya se notificó al usuario
     return;
   }
-  
+
   // Continuar con el proceso de subida
 
   const isCustomSize = selectedOptionSize === "custom"; // Verifica si el tamaño es personalizado
@@ -500,9 +502,39 @@ function handleFiles(e) {
   }
 }
 
+function hasInvalidFiles(files, e) {
+  let hasInvalidFiles = false;
+  const allowedFileFormat = [
+    "image/jpeg",
+    "image/webp",
+    "image/png",
+    "image/svg+xml",
+  ];
+
+  // Itera sobre cada archivo y muestra su tipo MIME en consola
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+
+    // Verifica si el tipo del archivo está en la lista de permitidos
+    if (!allowedFileFormat.includes(file.type)) {
+      console.error("❌ Formato no permitido:", file.type);
+      hasInvalidFiles = true;
+    } 
+
+    // Bloquea la subida si hay archivos no permitidos
+    if (hasInvalidFiles) {
+      showCustomAlert(`La imagen ${file.name} tiene un formato incompatible. Solo se permiten imágenes en formato JPEG, WebP, PNG o SVG`);
+      e.target.value = ""; // Limpia el input (elimina los archivos seleccionados)
+    }
+  }
+}
+
 function updateTotalImageSize() {
-  const totalSize = uploadedImagesData.reduce((sum, img) => sum + img.file.size, 0);
-  console.log(`Tamaño total actualizado: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
+  const totalSize = uploadedImagesData.reduce(
+    (sum, img) => sum + img.file.size,
+    0
+  );
+  return totalSize;
 }
 
 function validateAndUploadImages(files, uploadedImagesData, fileInput) {
@@ -517,16 +549,23 @@ function validateAndUploadImages(files, uploadedImagesData, fileInput) {
   if (totalAfterUpload > MAX_IMAGES) {
     const remainingSlots = MAX_IMAGES - currentImagesCount;
     if (remainingSlots <= 0) {
-      showNotification(`Ya tienes el máximo de ${MAX_IMAGES} imágenes. Elimina algunas para subir más.`, "warning");
+      showNotification(
+        `Ya tienes el máximo de ${MAX_IMAGES} imágenes. Elimina algunas para subir más.`
+      );
     } else {
-      showNotification(`Solo puedes subir ${remainingSlots} imágenes más. Has seleccionado ${files.length}.`, "warning");
+      showNotification(
+        `Solo puedes subir ${remainingSlots} imágenes más. Has seleccionado ${files.length}.`
+      );
     }
     fileInput.value = "";
     return false;
   }
 
   // Calcular tamaño total incluyendo imágenes ya cargadas
-  let totalSize = uploadedImagesData.reduce((sum, img) => sum + img.file.size, 0);
+  let totalSize = uploadedImagesData.reduce(
+    (sum, img) => sum + img.file.size,
+    0
+  );
 
   // Verificar tamaños de archivos individuales y acumular total
   for (let i = 0; i < files.length; i++) {
@@ -535,7 +574,9 @@ function validateAndUploadImages(files, uploadedImagesData, fileInput) {
     // Verificar tamaño individual
     if (file.size > MAX_FILE_SIZE) {
       const fileSizeMB = (file.size / 1024 / 1024).toFixed(1);
-      showNotification(`La imagen "${file.name}" (${fileSizeMB}MB) excede el límite de 40MB por archivo.`, "warning");
+      showNotification(
+        `La imagen "${file.name}" (${fileSizeMB}MB) excede el límite de 40MB por archivo.`
+      );
       fileInput.value = "";
       return false;
     }
@@ -546,7 +587,9 @@ function validateAndUploadImages(files, uploadedImagesData, fileInput) {
   // Verificar tamaño total acumulado
   if (totalSize > MAX_TOTAL_SIZE) {
     const totalSizeMB = (totalSize / 1024 / 1024).toFixed(1);
-    showNotification(`El tamaño total de todas las imágenes (${totalSizeMB}MB) excede el límite de 40MB.`, "warning");
+    showNotification(
+      `El tamaño total de todas las imágenes (${totalSizeMB}MB) excede el límite de 40MB.`
+    );
     fileInput.value = "";
     return false;
   }
@@ -760,7 +803,7 @@ function addToCart() {
 
   // Mostrar notificación de descuento aplicado con YayCommerce
   if (quantity >= 4 && !isCustomSize) {
-    showDiscountAlert(
+    showCustomAlert(
       "¡Buenísima noticia! Se ha aplicado un descuento especial a tu compra 🎉."
     );
   }
