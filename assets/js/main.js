@@ -819,7 +819,30 @@ function addToCart() {
     return;
   }
 
-  showLoadingIndicator();
+  // Procesar de manera asíncrona las imágenes notificando el progreso
+  async function processImages(images) {
+    const loading = showLoadingIndicator(images.length);
+    
+    for (let i = 0; i < images.length; i++) {
+      try {
+        loading.updateProgress(i + 1); // Actualiza el contador
+        
+        // Simula procesamiento (reemplazar con tu lógica real)
+        await new Promise(resolve => setTimeout(resolve, 1000)); 
+        
+        // Procesar imagen aquí...
+        console.log(`Procesando imagen ${i + 1}`);
+        
+      } catch (error) {
+        console.error("Error al procesar imagen:", error);
+      }
+    }
+    
+    loading.remove(); // Oculta el indicador al finalizar
+  }
+  
+  // Llamada de la functión
+  processImages(uploadedImagesData);
 
   // --- NUEVO: Enviar todas las imágenes en un solo FormData ---
   const formData = new FormData();

@@ -2,7 +2,7 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.5.9
+Version: 3.6.0
 Author: Enmanuel
 */
 
@@ -58,7 +58,7 @@ function web_form_shortcode()
     wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.5', true);
 
     // Cargar JS
-    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.6.3', true);
+    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.6.4', true);
     wp_enqueue_script('events-js', plugin_dir_url(__FILE__) . 'assets/js/events.js', array('jquery'), '1.0.8', true);
     wp_enqueue_script('requestHttp-js', plugin_dir_url(__FILE__) . 'assets/js/requestHttp.js', array('jquery'), '1.1.0', true);
 
@@ -340,7 +340,7 @@ function cargar_custom_notifications_js()
         'custom-notifications-js',
         plugin_dir_url(__FILE__) . 'assets/js/custom-notifications.js',
         array('jquery'),
-        '1.0.2',
+        '1.0.4',
         true
     );
 }

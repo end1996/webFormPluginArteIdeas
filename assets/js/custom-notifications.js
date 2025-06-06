@@ -12,16 +12,30 @@ function showNotification(message, type = "info") {
   }, 2000);
 }
 
-// Función para mostrar indicador de carga mejorado
-function showLoadingIndicator() {
+// Función para mostrar indicador de carga dinámico
+function showLoadingIndicator(totalImages) {
   const loadingOverlay = document.createElement("div");
   loadingOverlay.className = "loading-overlay";
   loadingOverlay.innerHTML = `
-      <div class="loading-spinner"></div>
-      <p>Procesando imagen 1/${uploadedImagesData.length}...</p>
-    `;
+    <div class="loading-spinner"></div>
+    <p>Procesando imagen 0/${totalImages}...</p>
+  `;
   document.body.appendChild(loadingOverlay);
   setTimeout(() => loadingOverlay.classList.add("show"), 10);
+
+  // Retornamos una función para actualizar el progreso
+  return {
+    updateProgress: (current) => {
+      const progressText = loadingOverlay.querySelector("p");
+      if (progressText) {
+        progressText.textContent = `Procesando imagen ${current}/${totalImages}...`;
+      }
+    },
+    remove: () => {
+      loadingOverlay.classList.remove("show");
+      setTimeout(() => loadingOverlay.remove(), 500); // Animación de fade out
+    }
+  };
 }
 
 // Función para ocultar indicador de carga
