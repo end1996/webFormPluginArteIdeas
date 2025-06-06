@@ -81,6 +81,11 @@
   background-color: #2196f3;
 }
 
+.notification.warning {
+  background-color: #ffeb3b;
+  color: #0000;
+}
+
 /* Estilo para errores de validación */
 .field-error {
   color: #f44336;

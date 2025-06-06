@@ -29,13 +29,13 @@ function initializeSizePicker() {
       // Agregar propiedades para ordenamiento
       width: size === "custom" ? Infinity : parseInt(size.split("X")[0]),
       height: size === "custom" ? Infinity : parseInt(size.split("X")[1]),
-      isCustom: size === "custom"
+      isCustom: size === "custom",
     }))
     .sort((a, b) => {
       // Poner dimensión personalizada al final
       if (a.isCustom) return 1;
       if (b.isCustom) return -1;
-      
+
       // Ordenar por ancho, luego por alto
       if (a.width === b.width) {
         return a.height - b.height;
@@ -377,7 +377,17 @@ uploadArea.addEventListener("drop", (e) => {
 // Función para manejar los archivos - Modificada para soportar múltiples imágenes
 function handleFiles(e) {
   const files = e.target.files; // Obtiene los archivos seleccionados
+
+  const isValid = validateAndUploadImages(files, uploadedImagesData, fileInput);
+  if (!isValid) {
+    // El proceso se detiene, ya se notificó al usuario
+    return;
+  }
+  
+  // Continuar con el proceso de subida
+
   const isCustomSize = selectedOptionSize === "custom"; // Verifica si el tamaño es personalizado
+
   if (sizePicker) {
     selectedSize = sizePicker.getValue(); // Obtiene el tamaño seleccionado
     // Si es personalizado, obtiene los valores actuales de ancho y alto
@@ -457,6 +467,7 @@ function handleFiles(e) {
             if (imagesGrid.children.length === 0) {
               uploadElements.classList.remove("has-images"); // Remover clase si no hay imágenes
             }
+            updateTotalImageSize(); // ✅ Aquí se actualiza el tamaño total
             updateTotalPrice(); // Actualizar el precio total
             reiniciarPrecioMarco();
           });
@@ -487,6 +498,59 @@ function handleFiles(e) {
   } else {
     showNotification("Por favor espere la carga de dimensiones...");
   }
+}
+
+function updateTotalImageSize() {
+  const totalSize = uploadedImagesData.reduce((sum, img) => sum + img.file.size, 0);
+  console.log(`Tamaño total actualizado: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
+}
+
+function validateAndUploadImages(files, uploadedImagesData, fileInput) {
+  const MAX_IMAGES = 10;
+  const MAX_FILE_SIZE = 40 * 1024 * 1024; // 40MB
+  const MAX_TOTAL_SIZE = 40 * 1024 * 1024; // 40MB
+
+  const currentImagesCount = uploadedImagesData.length;
+  const totalAfterUpload = currentImagesCount + files.length;
+
+  // Verificar el total de imágenes (subidas + nuevas)
+  if (totalAfterUpload > MAX_IMAGES) {
+    const remainingSlots = MAX_IMAGES - currentImagesCount;
+    if (remainingSlots <= 0) {
+      showNotification(`Ya tienes el máximo de ${MAX_IMAGES} imágenes. Elimina algunas para subir más.`, "warning");
+    } else {
+      showNotification(`Solo puedes subir ${remainingSlots} imágenes más. Has seleccionado ${files.length}.`, "warning");
+    }
+    fileInput.value = "";
+    return false;
+  }
+
+  // Calcular tamaño total incluyendo imágenes ya cargadas
+  let totalSize = uploadedImagesData.reduce((sum, img) => sum + img.file.size, 0);
+
+  // Verificar tamaños de archivos individuales y acumular total
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+
+    // Verificar tamaño individual
+    if (file.size > MAX_FILE_SIZE) {
+      const fileSizeMB = (file.size / 1024 / 1024).toFixed(1);
+      showNotification(`La imagen "${file.name}" (${fileSizeMB}MB) excede el límite de 40MB por archivo.`, "warning");
+      fileInput.value = "";
+      return false;
+    }
+
+    totalSize += file.size;
+  }
+
+  // Verificar tamaño total acumulado
+  if (totalSize > MAX_TOTAL_SIZE) {
+    const totalSizeMB = (totalSize / 1024 / 1024).toFixed(1);
+    showNotification(`El tamaño total de todas las imágenes (${totalSizeMB}MB) excede el límite de 40MB.`, "warning");
+    fileInput.value = "";
+    return false;
+  }
+  return true;
 }
 
 // Factor de conversión de cm a píxeles (ajusta según la calidad requerida)
@@ -648,7 +712,6 @@ function addToCart() {
     }
     size = `${customWidth}X${customHeight}`;
     pricePerUnit = parseInt(customHeight) * parseInt(customWidth) * 0.03;
-    console.log(pricePerUnit)
     pricePerUnit = Math.round(pricePerUnit);
     // Usar el custom_variation_id de la dimensión personalizada
     if (
@@ -697,8 +760,10 @@ function addToCart() {
 
   // Mostrar notificación de descuento aplicado con YayCommerce
   if (quantity >= 4 && !isCustomSize) {
-    showDiscountAlert("¡Buenísima noticia! Se ha aplicado un descuento especial a tu compra 🎉.")
-  } 
+    showDiscountAlert(
+      "¡Buenísima noticia! Se ha aplicado un descuento especial a tu compra 🎉."
+    );
+  }
 
   if (typeof ajax_object === "undefined") {
     console.error(
