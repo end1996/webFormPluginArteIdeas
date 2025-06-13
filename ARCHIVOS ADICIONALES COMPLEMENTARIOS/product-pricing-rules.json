@@ -1,0 +1,742 @@
+{
+    "rules": [
+        {
+            "id": "e8d1eb28-a1cc-4ed6-b057-eb713eda0c3a",
+            "rule_id": "yaydp_d29f84ec",
+            "name": "Dimensiones 10 X 15",
+            "is_enabled": true,
+            "type": "bulk_pricing",
+            "pricing": {
+                "item_get_type": "discount",
+                "buy_quantity": 1,
+                "get_quantity": 1,
+                "type": "fixed_discount",
+                "value": 50,
+                "maximum_value": null,
+                "repeat": true,
+                "affected_items": {
+                    "type": "whole_bundle",
+                    "quantity": 1,
+                    "effect_type": "lowest_price"
+                }
+            },
+            "discount_type": "individual_line_item_discount",
+            "pricing_ranges": [
+                {
+                    "from_quantity": 4,
+                    "to_quantity": 11,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 3,
+                        "maximum_value": null
+                    }
+                },
+                {
+                    "from_quantity": 12,
+                    "to_quantity": 99,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 2.5,
+                        "maximum_value": null
+                    }
+                },
+                {
+                    "from_quantity": 100,
+                    "to_quantity": null,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 0.5,
+                        "maximum_value": null
+                    }
+                }
+            ],
+            "buy_products": {
+                "match_type": "any",
+                "filters": [
+                    {
+                        "type": "product_variation",
+                        "comparation": "in_list",
+                        "value": [
+                            {
+                                "value": 3218,
+                                "key": 3218,
+                                "title": "Diseño personalizado - 10 X 15"
+                            }
+                        ],
+                        "quantity": 1
+                    }
+                ]
+            },
+            "get_products": {
+                "match_type": "any",
+                "filters": []
+            },
+            "conditions": {
+                "match_type": "any",
+                "logics": []
+            },
+            "tooltip": {
+                "enable": false,
+                "content": "You're getting this discount: [discount_value] off"
+            },
+            "offer_description": {
+                "enable": false,
+                "buy_product_description": "",
+                "get_product_description": ""
+            },
+            "schedule": {
+                "enable": false,
+                "start": null,
+                "end": null
+            },
+            "schedule_recurring": {
+                "type": "off"
+            },
+            "maximum_uses": {
+                "enable": false,
+                "value": 1
+            },
+            "use_time": 5,
+            "apply_to_first_matching_product": false
+        },
+        {
+            "id": "1a3916d5-135a-4e81-9b82-69de259f03a3",
+            "rule_id": "yaydp_f5000128",
+            "name": "Dimensiones 13 X 18",
+            "is_enabled": true,
+            "type": "bulk_pricing",
+            "pricing": {
+                "item_get_type": "discount",
+                "buy_quantity": 1,
+                "get_quantity": 1,
+                "type": "fixed_discount",
+                "value": 50,
+                "maximum_value": null,
+                "repeat": true,
+                "affected_items": {
+                    "type": "whole_bundle",
+                    "quantity": 1,
+                    "effect_type": "lowest_price"
+                }
+            },
+            "discount_type": "individual_line_item_discount",
+            "pricing_ranges": [
+                {
+                    "from_quantity": 4,
+                    "to_quantity": 11,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 5,
+                        "maximum_value": null
+                    }
+                },
+                {
+                    "from_quantity": 12,
+                    "to_quantity": 99,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 3,
+                        "maximum_value": null
+                    }
+                },
+                {
+                    "from_quantity": 100,
+                    "to_quantity": null,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 0.9,
+                        "maximum_value": null
+                    }
+                }
+            ],
+            "buy_products": {
+                "match_type": "any",
+                "filters": [
+                    {
+                        "type": "product_variation",
+                        "comparation": "in_list",
+                        "value": [
+                            {
+                                "value": 3219,
+                                "key": 3219,
+                                "title": "Diseño personalizado - 13 X 18"
+                            }
+                        ],
+                        "quantity": 1
+                    }
+                ]
+            },
+            "get_products": {
+                "match_type": "any",
+                "filters": []
+            },
+            "conditions": {
+                "match_type": "any",
+                "logics": []
+            },
+            "tooltip": {
+                "enable": false,
+                "content": "You're getting this discount: [discount_value] off"
+            },
+            "offer_description": {
+                "enable": false,
+                "buy_product_description": "",
+                "get_product_description": ""
+            },
+            "schedule": {
+                "enable": false,
+                "start": null,
+                "end": null
+            },
+            "schedule_recurring": {
+                "type": "off"
+            },
+            "maximum_uses": {
+                "enable": false,
+                "value": 1
+            },
+            "use_time": 2,
+            "apply_to_first_matching_product": false
+        },
+        {
+            "id": "03651272-add3-46c6-8795-168edad87af1",
+            "rule_id": "yaydp_f2ee6be5",
+            "name": "Dimensiones 15 X 21",
+            "is_enabled": true,
+            "type": "bulk_pricing",
+            "pricing": {
+                "item_get_type": "discount",
+                "buy_quantity": 1,
+                "get_quantity": 1,
+                "type": "fixed_discount",
+                "value": 50,
+                "maximum_value": null,
+                "repeat": true,
+                "affected_items": {
+                    "type": "whole_bundle",
+                    "quantity": 1,
+                    "effect_type": "lowest_price"
+                }
+            },
+            "discount_type": "individual_line_item_discount",
+            "pricing_ranges": [
+                {
+                    "from_quantity": 4,
+                    "to_quantity": 11,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 6,
+                        "maximum_value": null
+                    }
+                },
+                {
+                    "from_quantity": 12,
+                    "to_quantity": null,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 5,
+                        "maximum_value": null
+                    }
+                }
+            ],
+            "buy_products": {
+                "match_type": "any",
+                "filters": [
+                    {
+                        "type": "product_variation",
+                        "comparation": "in_list",
+                        "value": [
+                            {
+                                "value": 3220,
+                                "key": 3220,
+                                "title": "Diseño personalizado - 15 X 21"
+                            }
+                        ],
+                        "quantity": 1
+                    }
+                ]
+            },
+            "get_products": {
+                "match_type": "any",
+                "filters": []
+            },
+            "conditions": {
+                "match_type": "any",
+                "logics": []
+            },
+            "tooltip": {
+                "enable": false,
+                "content": "You're getting this discount: [discount_value] off"
+            },
+            "offer_description": {
+                "enable": false,
+                "buy_product_description": "",
+                "get_product_description": ""
+            },
+            "schedule": {
+                "enable": false,
+                "start": null,
+                "end": null
+            },
+            "schedule_recurring": {
+                "type": "off"
+            },
+            "maximum_uses": {
+                "enable": false,
+                "value": 1
+            },
+            "use_time": 2,
+            "apply_to_first_matching_product": false
+        },
+        {
+            "id": "8d4192aa-d6ec-4a4f-ad05-2010c98eddad",
+            "rule_id": "yaydp_72a6a776",
+            "name": "Dimensiones 20 X 25",
+            "is_enabled": true,
+            "type": "bulk_pricing",
+            "pricing": {
+                "item_get_type": "discount",
+                "buy_quantity": 1,
+                "get_quantity": 1,
+                "type": "fixed_discount",
+                "value": 50,
+                "maximum_value": null,
+                "repeat": true,
+                "affected_items": {
+                    "type": "whole_bundle",
+                    "quantity": 1,
+                    "effect_type": "lowest_price"
+                }
+            },
+            "discount_type": "individual_line_item_discount",
+            "pricing_ranges": [
+                {
+                    "from_quantity": 4,
+                    "to_quantity": 11,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 13,
+                        "maximum_value": null
+                    }
+                },
+                {
+                    "from_quantity": 12,
+                    "to_quantity": null,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 7,
+                        "maximum_value": null
+                    }
+                }
+            ],
+            "buy_products": {
+                "match_type": "any",
+                "filters": [
+                    {
+                        "type": "product_variation",
+                        "comparation": "in_list",
+                        "value": [
+                            {
+                                "value": 3221,
+                                "key": 3221,
+                                "title": "Diseño personalizado - 20 X 25"
+                            }
+                        ],
+                        "quantity": 1
+                    }
+                ]
+            },
+            "get_products": {
+                "match_type": "any",
+                "filters": []
+            },
+            "conditions": {
+                "match_type": "any",
+                "logics": []
+            },
+            "tooltip": {
+                "enable": false,
+                "content": "You're getting this discount: [discount_value] off"
+            },
+            "offer_description": {
+                "enable": false,
+                "buy_product_description": "",
+                "get_product_description": ""
+            },
+            "schedule": {
+                "enable": false,
+                "start": null,
+                "end": null
+            },
+            "schedule_recurring": {
+                "type": "off"
+            },
+            "maximum_uses": {
+                "enable": false,
+                "value": 1
+            },
+            "use_time": 1,
+            "apply_to_first_matching_product": false
+        },
+        {
+            "id": "8fb1f919-a6c1-4cec-bf5a-afc2e7383d2d",
+            "rule_id": "yaydp_8eac0593",
+            "name": "Dimensiones 20 X 30",
+            "is_enabled": true,
+            "type": "bulk_pricing",
+            "pricing": {
+                "item_get_type": "discount",
+                "buy_quantity": 1,
+                "get_quantity": 1,
+                "type": "fixed_discount",
+                "value": 50,
+                "maximum_value": null,
+                "repeat": true,
+                "affected_items": {
+                    "type": "whole_bundle",
+                    "quantity": 1,
+                    "effect_type": "lowest_price"
+                }
+            },
+            "discount_type": "individual_line_item_discount",
+            "pricing_ranges": [
+                {
+                    "from_quantity": 4,
+                    "to_quantity": 11,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 15,
+                        "maximum_value": null
+                    }
+                },
+                {
+                    "from_quantity": 12,
+                    "to_quantity": null,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 7,
+                        "maximum_value": null
+                    }
+                }
+            ],
+            "buy_products": {
+                "match_type": "any",
+                "filters": [
+                    {
+                        "type": "product_variation",
+                        "comparation": "in_list",
+                        "value": [
+                            {
+                                "value": 3222,
+                                "key": 3222,
+                                "title": "Diseño personalizado - 20 X 30"
+                            }
+                        ],
+                        "quantity": 1
+                    }
+                ]
+            },
+            "get_products": {
+                "match_type": "any",
+                "filters": []
+            },
+            "conditions": {
+                "match_type": "any",
+                "logics": []
+            },
+            "tooltip": {
+                "enable": false,
+                "content": "You're getting this discount: [discount_value] off"
+            },
+            "offer_description": {
+                "enable": false,
+                "buy_product_description": "",
+                "get_product_description": ""
+            },
+            "schedule": {
+                "enable": false,
+                "start": null,
+                "end": null
+            },
+            "schedule_recurring": {
+                "type": "off"
+            },
+            "maximum_uses": {
+                "enable": false,
+                "value": 1
+            },
+            "use_time": 0,
+            "apply_to_first_matching_product": false
+        },
+        {
+            "id": "187ab830-1ec3-4d6a-a13c-1a3fc25afbc5",
+            "rule_id": "yaydp_22f45970",
+            "name": "Dimensiones 25 X 38",
+            "is_enabled": true,
+            "type": "bulk_pricing",
+            "pricing": {
+                "item_get_type": "discount",
+                "buy_quantity": 1,
+                "get_quantity": 1,
+                "type": "fixed_discount",
+                "value": 50,
+                "maximum_value": null,
+                "repeat": true,
+                "affected_items": {
+                    "type": "whole_bundle",
+                    "quantity": 1,
+                    "effect_type": "lowest_price"
+                }
+            },
+            "discount_type": "individual_line_item_discount",
+            "pricing_ranges": [
+                {
+                    "from_quantity": 4,
+                    "to_quantity": 11,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 20,
+                        "maximum_value": null
+                    }
+                },
+                {
+                    "from_quantity": 12,
+                    "to_quantity": null,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 10,
+                        "maximum_value": null
+                    }
+                }
+            ],
+            "buy_products": {
+                "match_type": "any",
+                "filters": [
+                    {
+                        "type": "product_variation",
+                        "comparation": "in_list",
+                        "value": [
+                            {
+                                "value": 3223,
+                                "key": 3223,
+                                "title": "Diseño personalizado - 25 X 38"
+                            }
+                        ],
+                        "quantity": 1
+                    }
+                ]
+            },
+            "get_products": {
+                "match_type": "any",
+                "filters": []
+            },
+            "conditions": {
+                "match_type": "any",
+                "logics": []
+            },
+            "tooltip": {
+                "enable": false,
+                "content": "You're getting this discount: [discount_value] off"
+            },
+            "offer_description": {
+                "enable": false,
+                "buy_product_description": "",
+                "get_product_description": ""
+            },
+            "schedule": {
+                "enable": false,
+                "start": null,
+                "end": null
+            },
+            "schedule_recurring": {
+                "type": "off"
+            },
+            "maximum_uses": {
+                "enable": false,
+                "value": 1
+            },
+            "use_time": 0,
+            "apply_to_first_matching_product": false
+        },
+        {
+            "id": "e68c18f0-8ec9-4f72-ba68-b8c056ab9a65",
+            "rule_id": "yaydp_48bbbbd4",
+            "name": "Dimensiones 30 X 45",
+            "is_enabled": true,
+            "type": "bulk_pricing",
+            "pricing": {
+                "item_get_type": "discount",
+                "buy_quantity": 1,
+                "get_quantity": 1,
+                "type": "fixed_discount",
+                "value": 50,
+                "maximum_value": null,
+                "repeat": true,
+                "affected_items": {
+                    "type": "whole_bundle",
+                    "quantity": 1,
+                    "effect_type": "lowest_price"
+                }
+            },
+            "discount_type": "individual_line_item_discount",
+            "pricing_ranges": [
+                {
+                    "from_quantity": 4,
+                    "to_quantity": 11,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 30,
+                        "maximum_value": null
+                    }
+                },
+                {
+                    "from_quantity": 12,
+                    "to_quantity": null,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 12,
+                        "maximum_value": null
+                    }
+                }
+            ],
+            "buy_products": {
+                "match_type": "any",
+                "filters": [
+                    {
+                        "type": "product_variation",
+                        "comparation": "in_list",
+                        "value": [
+                            {
+                                "value": 3224,
+                                "key": 3224,
+                                "title": "Diseño personalizado - 30 X 45"
+                            }
+                        ],
+                        "quantity": 1
+                    }
+                ]
+            },
+            "get_products": {
+                "match_type": "any",
+                "filters": []
+            },
+            "conditions": {
+                "match_type": "any",
+                "logics": []
+            },
+            "tooltip": {
+                "enable": false,
+                "content": "You're getting this discount: [discount_value] off"
+            },
+            "offer_description": {
+                "enable": false,
+                "buy_product_description": "",
+                "get_product_description": ""
+            },
+            "schedule": {
+                "enable": false,
+                "start": null,
+                "end": null
+            },
+            "schedule_recurring": {
+                "type": "off"
+            },
+            "maximum_uses": {
+                "enable": false,
+                "value": 1
+            },
+            "use_time": 0,
+            "apply_to_first_matching_product": false
+        },
+        {
+            "id": "2a7233e1-38dd-4c8b-a0d0-8d26c2c975dc",
+            "rule_id": "yaydp_8cd2d7f0",
+            "name": "Dimensiones 30 X 60",
+            "is_enabled": true,
+            "type": "bulk_pricing",
+            "pricing": {
+                "item_get_type": "discount",
+                "buy_quantity": 1,
+                "get_quantity": 1,
+                "type": "fixed_discount",
+                "value": 50,
+                "maximum_value": null,
+                "repeat": true,
+                "affected_items": {
+                    "type": "whole_bundle",
+                    "quantity": 1,
+                    "effect_type": "lowest_price"
+                }
+            },
+            "discount_type": "individual_line_item_discount",
+            "pricing_ranges": [
+                {
+                    "from_quantity": 4,
+                    "to_quantity": 11,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 40,
+                        "maximum_value": null
+                    }
+                },
+                {
+                    "from_quantity": 12,
+                    "to_quantity": null,
+                    "pricing": {
+                        "type": "flat_price",
+                        "value": 35,
+                        "maximum_value": null
+                    }
+                }
+            ],
+            "buy_products": {
+                "match_type": "any",
+                "filters": [
+                    {
+                        "type": "product_variation",
+                        "comparation": "in_list",
+                        "value": [
+                            {
+                                "value": 3225,
+                                "key": 3225,
+                                "title": "Diseño personalizado - 30 X 60"
+                            }
+                        ],
+                        "quantity": 1
+                    }
+                ]
+            },
+            "get_products": {
+                "match_type": "any",
+                "filters": []
+            },
+            "conditions": {
+                "match_type": "any",
+                "logics": []
+            },
+            "tooltip": {
+                "enable": false,
+                "content": "You're getting this discount: [discount_value] off"
+            },
+            "offer_description": {
+                "enable": false,
+                "buy_product_description": "",
+                "get_product_description": ""
+            },
+            "schedule": {
+                "enable": false,
+                "start": null,
+                "end": null
+            },
+            "schedule_recurring": {
+                "type": "off"
+            },
+            "maximum_uses": {
+                "enable": false,
+                "value": 1
+            },
+            "use_time": 1,
+            "apply_to_first_matching_product": false
+        }
+    ]
+}
