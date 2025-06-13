@@ -2,8 +2,8 @@
 /*
 Plugin Name: Web Form Plugin
 Description: Un plugin para integrar mi aplicación HTML, CSS y JS en WordPress con WooCommerce.
-Version: 3.1.0
-Author: Enmanuel
+Version: 3.7.0
+Author: Enmanuel Nava, Piero Jimenez, Robinson Monrroy
 */
 
 // Verifica que WooCommerce esté activo
@@ -32,12 +32,18 @@ function web_form_shortcode()
     }
 
     // Ruta de a los archivos de la aplicación
-    $css_path = plugin_dir_url(__FILE__) . 'styles.css';
-    $js_path = plugin_dir_url(__FILE__) . 'main.js';
-    $picker_path = plugin_dir_url(__FILE__) . 'ios-picker.js';
+    $css_path = plugin_dir_url(__FILE__) . 'assets/css/styles.css';
+    $mini_cart_js_path = plugin_dir_url(__FILE__) . 'assets/js/mini-cart-style-script.js';
+    $js_path = plugin_dir_url(__FILE__) . 'assets/js/main.js';
+    $picker_path = plugin_dir_url(__FILE__) . 'assets/js/ios-picker.js';
 
     // Cargar CSS
-    wp_enqueue_style('web-form-styles', $css_path, array(), '5.1.7');
+    wp_enqueue_style('web-form-styles', $css_path, array(), '5.3.1');
+
+    // Cargar Mini-Cart Style CSS
+    wp_enqueue_script('mini-cart-style-script', $mini_cart_js_path, array(), '1.0.3');
+
+    wp_enqueue_style('picker-placeholder-css', plugin_dir_url(__FILE__) . 'assets/css/placeholder-loader.css', array(), '1.0.1');
 
     // Cargar Swiper CSS desde CDN
     wp_enqueue_style('swiper-css', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css', array(), '11.0.0');
@@ -45,11 +51,16 @@ function web_form_shortcode()
     // Cargar Viewer CSS desde CDN
     wp_enqueue_style('viewer-css', 'https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.7/viewer.css', array(), '1.11.7');
 
+    // Cargar Picker Placeholder JS
+    wp_enqueue_script('picker-placeholder-js', plugin_dir_url(__FILE__) . 'assets/js/picker-placeholder.js', array('jquery'), '1.0.0', true);
+
     // Cargar IOS-Picker
-    wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.1', true);
+    wp_enqueue_script('picker-script-js', $picker_path, array('jquery'), '2.0.5', true);
 
     // Cargar JS
-    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.6.6', true);
+    wp_enqueue_script('script-js', $js_path, array('jquery'), '5.6.4', true);
+    wp_enqueue_script('events-js', plugin_dir_url(__FILE__) . 'assets/js/events.js', array('jquery'), '1.0.8', true);
+    wp_enqueue_script('requestHttp-js', plugin_dir_url(__FILE__) . 'assets/js/requestHttp.js', array('jquery'), '1.1.0', true);
 
     // Cargar Swiper JS desde CDN (depende de jQuery)
     wp_enqueue_script('swiper-js', 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', array('jquery'), '11.0.0', true);
@@ -68,6 +79,15 @@ function web_form_shortcode()
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce' => wp_create_nonce('web_form_nonce')
     ));
+
+    // Asegurarse de que WooCommerce cargue sus fragmentos
+    if (function_exists('wc_enqueue_js')) {
+        wc_enqueue_js('
+            jQuery(document.body).on("wc_fragment_refresh", function() {
+                jQuery(document.body).trigger("wc_fragments_refreshed");
+            });
+        ');
+    }
 
     // Incluir el archivo HTML
     ob_start(); // Inicia el almacenamiento en búfer de salida
@@ -91,19 +111,24 @@ function process_print_image_to_cart()
 
     $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 1;
     $size = isset($_POST['size']) ? sanitize_text_field($_POST['size']) : '';
+    $variation_id = isset($_POST['variation_id']) ? sanitize_text_field($_POST['variation_id']) : 0;
     $price = isset($_POST['price']) ? floatval($_POST['price']) : 0.0;
     $comments = isset($_POST['comments']) ? sanitize_textarea_field($_POST['comments']) : '';
     $frame = isset($_POST['frame']) ? sanitize_text_field($_POST['frame']) : 'sin-marco';
     $custom_width = isset($_POST['custom_width']) ? intval($_POST['custom_width']) : 0;
     $custom_height = isset($_POST['custom_height']) ? intval($_POST['custom_height']) : 0;
     $is_custom_size = isset($_POST['is_custom_size']) ? filter_var($_POST['is_custom_size'], FILTER_VALIDATE_BOOLEAN) : false;
+    $frame_price = isset($_POST['frame_price']) ? floatval($_POST['frame_price']) : 0.0;
 
-    $product_id = get_option('print_image_product_id', 159);
+    // ID DEL PRODUCTO
+    $product_id = get_option('print_image_product_id', 244);
     if (!$product_id || !wc_get_product($product_id)) {
         error_log('Error: No se ha configurado un producto base para impresiones');
         wp_send_json_error('No se ha configurado un producto base para impresiones');
         return;
     }
+
+    error_log('ID DE LA VARIACION: ' . $variation_id);
 
     $upload_dir = wp_upload_dir();
     $images_data = [];
@@ -126,7 +151,7 @@ function process_print_image_to_cart()
             continue;
         }
 
-        $allowed_types = array('image/jpeg', 'image/png', 'image/gif', 'image/webp');
+        $allowed_types = array('image/jpeg', 'image/png', 'image/svg+xml', 'image/webp');
         $file_info = wp_check_filetype_and_ext($file['tmp_name'], $file['name']);
         $file_type = $file_info['type'] ? $file_info['type'] : $file['type'];
 
@@ -161,15 +186,27 @@ function process_print_image_to_cart()
     // Guardar todas las imágenes en el array print_image_data
     $cart_item_data = array(
         'print_image_data' => $images_data,
-        'size' => $is_custom_size ? "{$custom_width}x{$custom_height}" : $size,
+        //'size' => $is_custom_size ? "{$custom_width} X {$custom_height}" : $size,
         'price' => $price,
         'is_custom_size' => $is_custom_size,
         'frame' => $frame,
         'comments' => $comments,
+        'frame_price' => $frame_price,
         'unique_key' => md5(microtime() . rand())
     );
 
-    $cart_item_key = WC()->cart->add_to_cart($product_id, $quantity, 0, array(), $cart_item_data);
+    // Solo agregar dimensiones si son personalizadas
+    if ($is_custom_size) {
+        $cart_item_data['custom_width'] = $custom_width;
+        $cart_item_data['custom_height'] = $custom_height;
+    }
+
+    // --- NUEVO: Añadir variación correctamente ---
+    if (!$is_custom_size && !empty($size)) {
+        $variation['attribute_pa_dimensiones'] = $size;
+    }
+
+    $cart_item_key = WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variation, $cart_item_data);
 
     if ($cart_item_key) {
         wp_send_json_success(array(
@@ -198,241 +235,161 @@ function process_print_image_to_cart()
 add_action('wp_ajax_process_print_image', 'process_print_image_to_cart');
 add_action('wp_ajax_nopriv_process_print_image', 'process_print_image_to_cart');
 
-
-// Mostrar los datos personalizados en el carrito y checkout
-
-function display_cart_product($product_images, $cart_item, $cart_item_key)
+add_action('woocommerce_before_calculate_totals', 'set_custom_price_for_cart_item', 20, 1);
+function set_custom_price_for_cart_item($cart)
 {
-    if (isset($cart_item['print_image_data']) && is_array($cart_item['print_image_data'])) {
-        $images = [];
-        foreach ($cart_item['print_image_data'] as $img) {
-            $images[] = (object) [
-                'id' => 0,
-                'src' => $img['image_url'],
-                'thumbnail' => $img['image_url'],
-                'srcset' => '',
-                'sizes' => '',
-                'name' => 'Imagen personalizada del producto',
-                'alt' => 'Imagen personalizada del producto',
-            ];
-        }
-        return $images;
-    }
-    return $product_images;
-}
-add_filter('woocommerce_store_api_cart_item_images', 'display_cart_product', 10, 3);
-
-function reemplazar_thumbnail_por_print_image($thumbnail, $item)
-{
-    // Si $item es un integer, se asume que es el ID del item, por lo que cargamos el objeto
-    if (is_int($item)) {
-        error_log('ℹ️ Recibido ID de item: ' . $item);
-        $item = new WC_Order_Item_Product($item);
-    }
-
-    // Verificar que ahora sí es un objeto válido
-    if ($item instanceof WC_Order_Item_Product) {
-        $print_image_url = $item->get_meta('URL', true);
-        error_log('🖼️ Metadato _print_image_url: ' . $print_image_url);
-
-        if (!empty($print_image_url)) {
-            $thumbnail = '<img src="' . esc_url($print_image_url) . '" alt="Imagen personalizada" height: auto; />';
-        }
-    } else {
-        // Aún no es el objeto esperado, log más detallado
-        $tipo = is_object($item) ? get_class($item) : gettype($item);
-        error_log('⚠️ Tipo de $item inesperado después de conversión: ' . $tipo);
-    }
-
-    return $thumbnail;
-}
-add_filter('woocommerce_admin_order_item_thumbnail', 'reemplazar_thumbnail_por_print_image', 10, 2);
-
-
-// Actualizar el precio del producto en el carrito
-function update_cart_item_price($cart)
-{
-    if (did_action('woocommerce_before_calculate_totals') >= 2 || is_admin() && !defined('DOING_AJAX')) {
+    if (is_admin() && !defined('DOING_AJAX'))
         return;
-    }
 
-    // Definir precios por tamaño y cantidad
-    $size_prices = [
-        "10X15" => 5.00,
-        "13X18" => 7.00,
-        "15X21" => 8.00,
-        "20X25" => 15.00,
-        "20X30" => 18.00,
-        "25X38" => 25.00,
-        "30X45" => 35.00,
-        "30X60" => 45.00,
-    ];
-    $bulk_size_prices = [
-        "10X15" => 3.00,
-        "13X18" => 5.00,
-        "15X21" => 6.00,
-        "20X25" => 13.00,
-        "20X30" => 15.00,
-        "25X38" => 20.00,
-        "30X45" => 30.00,
-        "30X60" => 40.00,
-    ];
-    $bulk_size_prices_12 = [
-        "10X15" => 2.50,
-        "13X18" => 4.00,
-        "15X21" => 5.00,
-        "20X25" => 10.00,
-        "20X30" => 12.00,
-        "25X38" => 18.00,
-        "30X45" => 25.00,
-        "30X60" => 35.00,
-    ];
     foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
-        $product = $cart_item['data'];
-        $quantity = $cart_item['quantity'];
-
-        // CORREGIDO: Obtener el tamaño del producto
-        $size = isset($cart_item['size']) ? $cart_item['size'] : '';
-
-        if (!empty($size)) {
-            if ($quantity >= 12 && isset($bulk_size_prices_12[$size])) {
-                $precio_final = $bulk_size_prices_12[$size];
-            } elseif ($quantity >= 4 && isset($bulk_size_prices[$size])) {
-                $precio_final = $bulk_size_prices[$size];
-            } elseif (isset($size_prices[$size])) {
-                $precio_final = $size_prices[$size];
-            }
-
-            if (isset($precio_final)) {
-                $product->set_price($precio_final);
+        if (isset($cart_item['print_image_data']) && isset($cart_item['price'])) {
+            $custom_price = floatval($cart_item['price']);
+            if ($custom_price > 0) {
+                $cart_item['data']->set_price($custom_price);
             }
         }
     }
 }
-add_action('woocommerce_before_calculate_totals', 'update_cart_item_price', 20, 1);
 
-function display_print_image_cart_item_data(
-    $item_data,
-    $cart_item
-) {
-    if (isset($cart_item['print_image_data'])) {
-        $images = $cart_item['print_image_data'];
-        // Si es un solo string (caso antiguo), conviértelo en array
-        if (!is_array($images) || (isset($images['image_url']) && is_string($images['image_url']))) {
-            $images = [$images];
-        }
-        // Solo mostrar imágenes si es array de arrays
-        if (is_array($images)) {
-            // Mostrar miniaturas de todas las imágenes
-            $thumbnails = '';
-            foreach ($images as $img) {
-                if (is_array($img) && !empty($img['image_url'])) {
-                    $thumbnails .= '<img src="' . esc_url($img['image_url']) . '" alt="Imagen subida" class="cart-image-preview" style="max-width:60px;max-height:60px;margin-right:5px;border:1px solid #ccc;border-radius:4px;" />';
-                }
-            }
-            if (!empty($thumbnails)) {
-                $item_data[] = array(
-                    'key' => 'Imágenes',
-                    'value' => $thumbnails
-                );
-            }
-        }
-        // Otros datos como tamaño, marco, comentarios...
-        if (isset($cart_item['size'])) {
-            $item_data[] = array('key' => 'Tamaño', 'value' => $cart_item['size']);
-        }
-        if (isset($cart_item['frame']) && $cart_item['frame'] !== 'sin-marco') {
-            $item_data[] = array('key' => 'Marco', 'value' => $cart_item['frame']);
-        }
-        if (!empty($cart_item['comments'])) {
-            $item_data[] = array('key' => 'Comentarios', 'value' => $cart_item['comments']);
-        }
-    }
-    return $item_data;
-}
-add_filter('woocommerce_get_item_data', 'display_print_image_cart_item_data', 10, 2);
-
-// Guardar datos personalizados en el pedido
-function save_print_image_order_item_meta($item, $cart_item_key, $values, $order)
+// Cargar el script del carrito en las páginas necesarias
+function load_cart_handler_script()
 {
-    if (isset($values['print_image_data']) && is_array($values['print_image_data'])) {
-        foreach ($values['print_image_data'] as $img) {
-            $item->add_meta_data('Imagen', $img['image_url']);
-        }
-        $item->add_meta_data('Tamaño', $values['size']);
-        if ($values['frame'] !== 'sin-marco') {
-            $item->add_meta_data('Marco', $values['frame']);
-        }
-        if (!empty($values['comments'])) {
-            $item->add_meta_data('Comentarios', $values['comments']);
-        }
+    // Solo cargar en páginas que contengan el carrito
+    if (is_cart() || is_checkout() || is_product()) {
+        wp_enqueue_script('cart-handler-js', plugin_dir_url(__FILE__) . 'assets/js/cart-handler.js', array('jquery', 'wc-cart'), '1.0.6', true);
     }
 }
-add_action('woocommerce_checkout_create_order_line_item', 'save_print_image_order_item_meta', 10, 4);
-
-// Añadir página de configuración en el panel de administración
-function print_image_settings_page()
+add_action('wp_enqueue_scripts', 'load_cart_handler_script');
+// Cargar los estilos personalizados para vista de carrito
+function load_cart_page_styles()
 {
-    add_submenu_page(
-        'woocommerce',
-        'Configuración de Impresión de Imágenes',
-        'Impresión de Imágenes',
-        'manage_options',
-        'print-image-settings',
-        'print_image_settings_page_content'
+    // Cargar solo en la página del carrito
+    if (is_cart()) {
+        wp_enqueue_style('cart-page-css', plugin_dir_url(__FILE__) . 'assets/css/cart-page-style.css', array(), '1.1.0');
+    }
+}
+add_action('wp_enqueue_scripts', 'load_cart_page_styles');
+
+function load_order_details_styles()
+{
+    if (is_order_received_page()) {
+        wp_enqueue_style('order-details-css', plugin_dir_url(__FILE__) . 'assets/css/order-details-style.css', array(), '1.0.3');
+    }
+}
+add_action('wp_enqueue_scripts', 'load_order_details_styles');
+
+function load_order_details_admin_styles($hook)
+{
+    // Asegurarnos de que estamos en la vista de edición de pedidos de WooCommerce
+    if (isset($_GET['page']) && $_GET['page'] === 'wc-orders' && isset($_GET['action']) && $_GET['action'] === 'edit') {
+        wp_enqueue_style('order-details-css-admin', plugin_dir_url(__FILE__) . 'assets/css/order-details-style.css', array(), '1.0.4');
+    }
+}
+add_action('admin_enqueue_scripts', 'load_order_details_admin_styles');
+
+
+function load_checkout_page_styles()
+{
+    if (is_checkout()) {
+        wp_enqueue_style('checkout-page-css', plugin_dir_url(__FILE__) . 'assets/css/checkout-page-style.css', array(), '1.0.2');
+    }
+}
+add_action('wp_enqueue_scripts', 'load_checkout_page_styles');
+
+// Cargar custom-checkout.php SOLO en la página de checkout
+function load_custom_checkout_script()
+{
+    // Verificar si WooCommerce está activo y si es la página de checkout
+    if (class_exists('WooCommerce') && is_checkout() && !is_order_received_page()) {
+        require_once plugin_dir_path(__FILE__) . 'includes/custom-checkout.php';
+    }
+}
+add_action('wp', 'load_custom_checkout_script');
+
+// Cargar woocommerce custom-product-display
+require_once plugin_dir_path(__FILE__) . 'includes/wc-custom-product-display.php';
+
+// Cargar custom redirections
+require_once plugin_dir_path(__FILE__) . 'includes/custom-redirections.php';
+
+// Cargar customizations
+require_once plugin_dir_path(__FILE__) . 'includes/customizations.php';
+
+// Cargar simple products filter
+require_once plugin_dir_path(__FILE__) . 'includes/wc-simple-products-name.php';
+
+// Cargar página de configuración de producto base
+require_once plugin_dir_path(__FILE__) . 'includes/wc-print-setting-page.php';
+
+// Cargar sistema de precios para marcos
+require_once plugin_dir_path(__FILE__) . 'includes/wc-frame-pricing-system.php';
+
+// Cargar personalización de muestra de productos
+require_once plugin_dir_path(__FILE__) . 'includes/wc-custom-product-display.php';
+
+// Cargar WebForm Backend
+require_once plugin_dir_path(__FILE__) . 'includes/web-form-backend.php';
+
+// Cargar historial de compras
+require_once plugin_dir_path(__FILE__) . 'includes/historial-compra.php';
+
+// Cargar herramienta de borrado automático de imágenes
+require plugin_dir_path(__FILE__) . 'includes/web-form-delete-image.php';
+function load_custom_lost_password_page()
+{
+    if (is_wc_endpoint_url('lost-password')) {
+        wp_enqueue_style('lost-password-page-css', plugin_dir_url(__FILE__) . 'assets/css/lost-password-page-style.css', array(), '1.0.0');
+    }
+}
+add_action('wp_enqueue_scripts', 'load_custom_lost_password_page');
+
+function cargar_custom_notifications_js()
+{
+    wp_enqueue_script(
+        'custom-notifications-js',
+        plugin_dir_url(__FILE__) . 'assets/js/custom-notifications.js',
+        array('jquery'),
+        '1.0.4',
+        true
     );
 }
-add_action('admin_menu', 'print_image_settings_page');
+add_action('wp_enqueue_scripts', 'cargar_custom_notifications_js');
 
-// Aumentar límites de PHP para permitir subida de imágenes grandes
-function increase_upload_limits()
+function load_custom_notifications_loading_css()
 {
-    @ini_set('post_max_size', '64M');
-    @ini_set('upload_max_filesize', '32M');
-    @ini_set('max_execution_time', '300');
-    @ini_set('max_input_time', '300');
+    wp_enqueue_style(
+        'custom-notifications-loading-css',
+        plugin_dir_url(__FILE__) . 'assets/css/notifications-loading-styles.css',
+        array(),
+        '1.0.2'
+    );
 }
-add_action('init', 'increase_upload_limits');
 
-// Contenido de la página de configuración
-function print_image_settings_page_content()
+add_action('wp_enqueue_scripts', 'load_custom_notifications_loading_css');
+
+function load_main_menu_redirection_js()
 {
-    // Guardar configuración
-    if (isset($_POST['print_image_settings_nonce']) && wp_verify_nonce($_POST['print_image_settings_nonce'], 'save_print_image_settings')) {
-        if (isset($_POST['print_image_product_id'])) {
-            update_option('print_image_product_id', intval($_POST['print_image_product_id']));
-        }
-        echo '<div class="notice notice-success"><p>Configuración guardada correctamente.</p></div>';
-    }
-
-    $product_id = get_option('print_image_product_id', 0);
-    ?>
-    <div class="wrap">
-        <h1>Configuración de Impresión de Imágenes</h1>
-        <form method="post" action="">
-            <?php wp_nonce_field('save_print_image_settings', 'print_image_settings_nonce'); ?>
-            <table class="form-table">
-                <tr>
-                    <th scope="row">Producto Base</th>
-                    <td>
-                        <select name="print_image_product_id">
-                            <option value="0">Selecciona un producto</option>
-                            <?php
-                            $products = wc_get_products(array('status' => 'publish', 'limit' => -1));
-                            foreach ($products as $product) {
-                                echo '<option value="' . esc_attr($product->get_id()) . '"' . selected($product_id, $product->get_id(), false) . '>' . esc_html($product->get_name()) . '</option>';
-                            }
-                            ?>
-                        </select>
-                        <p class="description">Selecciona el producto base que se utilizará para las impresiones de
-                            imágenes.</p>
-                    </td>
-                </tr>
-            </table>
-            <p class="submit">
-                <input type="submit" name="submit" id="submit" class="button button-primary" value="Guardar Cambios">
-            </p>
-        </form>
-    </div>
-    <?php
+    wp_enqueue_script(
+        'main-menu-redirection-js',
+        plugin_dir_url(__FILE__) . 'assets/js/main-menu-redirection.js',
+        array('jquery'),
+        '1.0.0',
+        true
+    );
 }
+
+add_action('wp_enqueue_scripts', 'load_main_menu_redirection_js');
+
+// DISPARADORES DE EVENTOS DE WORDPRESS - WOOCOMMERCE
+// Crear tablas al activar el plugin
+register_activation_hook(__FILE__, 'generador_tablas');
+// Eliminar tablas al desactivar el plugin
+register_deactivation_hook(__FILE__, 'eliminar_tablas');
+// Guardar los productos de marco al publicar un producto
+add_action('woocommerce_update_product', 'guardar_datos_marcos', 10, 1);
+// Eliminar el registro de un marco al momento de eliminar el producto
+add_action('wp_trash_post', 'eliminar_marco');
+// Guardar las varriaciones Dimension y Precio de una impresion al guardar las variaciones
+add_action('woocommerce_after_product_object_save', 'guardar_datos_variaciones_personalizados', 10, 1);
+// Elminar las varriaciones Dimension y Precio de una impresion al borrar desde el boton
+add_action('before_delete_post', 'eliminar_precios_personalizados_variacion');

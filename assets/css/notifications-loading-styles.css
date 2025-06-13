@@ -1,0 +1,186 @@
+/* Estilos para notificaciones */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 20px;
+  border-radius: 5px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  color: white;
+  font-weight: 500;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+/* Estilos para notificación de descuento*/
+#custom-alert {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+#custom-alert.hidden {
+  display: none;
+}
+
+.custom-alert-box {
+  background-color: white;
+  padding: 25px 35px;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  max-width: 90%;
+  font-family: sans-serif;
+}
+
+.custom-alert-box p {
+  margin-bottom: 20px;
+  font-size: 18px;
+}
+
+#custom-alert-close {
+  padding: 10px 20px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s ease;
+}
+
+#custom-alert-close:hover {
+  background-color: #ef5b50;
+}
+
+/*Fin del estilo*/
+
+.notification.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.notification.success {
+  background-color: #4caf50;
+}
+
+.notification.error {
+  background-color: #f44336;
+}
+
+.notification.info {
+  background-color: #2196f3;
+}
+
+/* Estilo para errores de validación */
+.field-error {
+  color: #f44336;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+/* Estilo para campos con error */
+input.error,
+textarea.error {
+  border-color: #f44336;
+}
+
+/* Estilos para indicador de carga */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s;
+}
+
+.loading-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 5px solid #e76f51;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-overlay p {
+  margin-top: 15px;
+  color: white;
+  font-size: var(--font-size-title);
+}
+
+/* Estilo para mensajes de confirmación */
+.confirmation-message {
+  text-align: center;
+  padding: 20px;
+  background-color: #e8f5e9;
+  border-radius: 5px;
+  margin: 20px 0;
+}
+
+.confirmation-message h3 {
+  color: #4caf50;
+  margin-top: 0;
+}
+
+@media (max-width: 480px) {
+  .notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    transform: translateY(-20px);
+    transition: opacity 0.3s, transform 0.3s;
+  }
+
+  .notification.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 760px) {
+  .notification {
+    position: fixed;
+    top: 30px;
+    right: 20px;
+    padding: 15px 20px;
+  }
+
+  .notification.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
