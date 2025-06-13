@@ -1,0 +1,132 @@
+:root {
+    --font-size-cart-item: 0.875rem;
+}
+
+table {
+	margin: 0;
+}
+
+table.woocommerce-cart-form__contents tr.cart_item {
+    padding: 0 !important;
+}
+
+/* Ocultar el botón del carrito en el carrito */
+body.woocommerce-cart .elementor-menu-cart__toggle {
+    display: none !important;
+}
+
+/* Cart totals */
+
+.woocommerce-cart .cart_totals {
+    margin-top: 0;
+}
+
+/* Ocultar el botón de actualizar carrito en la página del carrito */
+.woocommerce-cart button[name="update_cart"] {
+  display: none !important;
+}
+
+.woocommerce-Price-amount .amount {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .woocommerce-cart .cart-collaterals,
+    .woocommerce-cart .woocommerce-cart-form {
+        width: 100%;
+    }
+	
+	.cart-collaterals {
+		display: none;
+	}
+    /* Ocultar nombre del producto*/
+    .product-name a {
+        display :none;
+    }
+}
+
+/* Desktop y tablet */
+.woocommerce-cart .cart_item .product-price {
+    position: relative;
+    min-height: 60px;
+    font-size: var(--font-size-cart-item) !important;
+}
+
+/* Precio del marco siempre abajo */
+.woocommerce-cart .cart_item .product-price .precio-marco {
+    position: absolute;
+    left: 0;
+    bottom: 40px;
+    width: 100%;
+    padding-top: 2px;
+    z-index: 2;
+    font-size: var(--font-size-cart-item) !important;
+
+}
+
+/* Oculta específicamente la cantidad en el precio del carrito */
+.yaydp-cart-item-price .yaydp-cart-item-quantity {
+    display: none !important;
+  }
+  
+  /* Ajusta el espaciado resultante */
+  .yaydp-cart-item-price .price {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+
+@media (max-width: 768px) {
+    .woocommerce-cart .cart_item .product-price .precio-marco {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .woocommerce-cart .cart_item .product-price .precio-marco {
+        display: none;
+    }
+
+    .woocommerce-cart .cart_item .product-name {
+        font-size: var(--font-size-cart-item) !important;
+    }
+
+    .woocommerce-cart .cart_item .subtotal-base, .woocommerce-cart .cart_item .subtotal-marco {
+        font-size: var(--font-size-cart-item) !important;
+    }
+}
+
+.image-thumbnails-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+}
+
+.image-thumb {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 12px;
+}
+
+.image-thumb img {
+    max-width: 100%;
+    height: auto;
+    object-fit: cover;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    aspect-ratio: 3/2;
+}
+
+@media (max-width: 780px) {
+    .image-thumbnails-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .image-thumbnails-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+

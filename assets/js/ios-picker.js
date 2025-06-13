@@ -21,6 +21,12 @@
             border-radius: 4px;
             touch-action: pan-y;
             margin: 0 auto;
+            outline: none; /* Remove default focus outline */
+        }
+        
+        .carousel-container:focus {
+            border-color: var(--selected-text-color);
+            box-shadow: 0 0 0 2px rgba(228, 146, 125, 0.3);
         }
 
         .carousel-track {
@@ -37,7 +43,6 @@
             justify-content: center;
             font-size: 0.875rem;
             color:  color: #070707;;
-            // padding: 0 20px;
             cursor: pointer;
             user-select: none;
         }
@@ -71,13 +76,13 @@
         }
 
         
-        .picker-title {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--text-color);
-        }
+        // .picker-title {
+        //     text-align: center;
+        //     margin-bottom: 20px;
+        //     font-size: 20px;
+        //     font-weight: 600;
+        //     color: var(--text-color);
+        // }
 
         .picker-wrapper {
             display: 20px;
@@ -140,7 +145,7 @@
 
             this.carouselContainer.appendChild(highlight);
             this.carouselContainer.appendChild(this.carouselTrack);
-            this.pickerWrapper.appendChild(this.titleElement);
+            // this.pickerWrapper.appendChild(this.titleElement);
             this.pickerWrapper.appendChild(this.carouselContainer);
 
             if (this.options.container) {
@@ -179,9 +184,51 @@
         }
 
         setupKeyboardNavigation() {
+            // Add tabindex to make the picker focusable
+            this.carouselContainer.setAttribute('tabindex', '0');
+            
+            // Track if picker has focus or is being interacted with
+            let hasFocus = false;
+            
+            // Set focus state when picker is clicked or touched
+            this.carouselContainer.addEventListener('mousedown', () => {
+                hasFocus = true;
+                this.carouselContainer.focus();
+            });
+            
+            this.carouselContainer.addEventListener('touchstart', () => {
+                hasFocus = true;
+                this.carouselContainer.focus();
+            }, { passive: true });
+            
+            // Focus events
+            this.carouselContainer.addEventListener('focus', () => {
+                hasFocus = true;
+            });
+            
+            this.carouselContainer.addEventListener('blur', () => {
+                hasFocus = false;
+            });
+            
+            // Clear focus when touching outside
+            document.addEventListener('touchstart', (e) => {
+                if (!this.carouselContainer.contains(e.target)) {
+                    hasFocus = false;
+                }
+            }, { passive: true });
+            
+            // Only respond to arrow keys when picker has focus
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowUp') this.carousel.prev();
-                if (e.key === 'ArrowDown') this.carousel.next();
+                if (!hasFocus) return;
+                
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault(); // Prevent page scrolling
+                    this.carousel.prev();
+                }
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault(); // Prevent page scrolling
+                    this.carousel.next();
+                }
             });
         }
 
@@ -227,7 +274,7 @@
         }
 
         setupEvents() {
-            this.element.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
+            this.element.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
             this.element.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
             this.element.addEventListener('touchend', this.handleTouchEnd.bind(this));
             this.element.addEventListener('mousedown', this.handleMouseDown.bind(this));
@@ -320,6 +367,16 @@
         }
 
         handleWheel(e) {
+            // Only respond to wheel events when inside the carousel container
+            const bounds = this.element.getBoundingClientRect();
+            const isInside = 
+                e.clientX >= bounds.left && 
+                e.clientX <= bounds.right && 
+                e.clientY >= bounds.top && 
+                e.clientY <= bounds.bottom;
+            
+            if (!isInside) return;
+            
             e.preventDefault();
 
             if (this.isAnimating) return;
